@@ -67,8 +67,10 @@ orp_max: 800
 | `pump_entity` | — | Pump mode select entity |
 | `show_aux1` | `true` | Show the Auxiliary 1 row |
 | `aux1_entity` | — | Auxiliary 1 switch |
+| `aux1_mode` | `switch` | `switch` = toggleable, `regulator` = read-only on/off display (e.g. chlorine regulator) |
 | `show_aux2` | `false` | Show the Auxiliary 2 row |
 | `aux2_entity` | — | Auxiliary 2 switch |
+| `aux2_mode` | `switch` | Same as `aux1_mode` |
 | `show_last_updated` | `true` | Show last data update time at the top right |
 | `ph_offset` | `0` | pH calibration correction, positive or negative (e.g. `-0.99`) |
 | `ph_min` / `ph_max` | 6.8 / 7.6 | Green zone for pH |
