@@ -1,6 +1,6 @@
 # Oklyn Card
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/ADNPolymerase/oklyn-card)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/ADNPolymerase/hacs.oklyn-card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://buymeacoffee.com/adnpolymerase)
 
 Custom Lovelace card for the [Oklyn pool controller integration](https://github.com/ADNPolymerase/hacs.oklyn).
@@ -19,7 +19,7 @@ Custom Lovelace card for the [Oklyn pool controller integration](https://github.
 ## Installation (HACS)
 
 1. **HACS → ⋮ → Custom repositories**
-2. Add `https://github.com/ADNPolymerase/oklyn-card` with category **Dashboard**
+2. Add `https://github.com/ADNPolymerase/hacs.oklyn-card` with category **Dashboard**
 3. Search for **Oklyn Card** and download it
 4. Reload your browser (the resource is registered automatically)
 
@@ -89,7 +89,7 @@ Carte Lovelace pour l'[intégration Oklyn](https://github.com/ADNPolymerase/hacs
 ## Installation (HACS)
 
 1. **HACS → ⋮ → Dépôts personnalisés**
-2. Ajouter `https://github.com/ADNPolymerase/oklyn-card` en catégorie **Dashboard**
+2. Ajouter `https://github.com/ADNPolymerase/hacs.oklyn-card` en catégorie **Dashboard**
 3. Rechercher **Oklyn Card** et télécharger
 4. Recharger le navigateur
 

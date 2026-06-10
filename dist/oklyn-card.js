@@ -1,6 +1,6 @@
 /**
  * Oklyn Card — custom Lovelace card for the Oklyn pool controller integration.
- * https://github.com/ADNPolymerase/oklyn-card
+ * https://github.com/ADNPolymerase/hacs.oklyn-card
  *
  * Works with the Oklyn integration: https://github.com/ADNPolymerase/hacs.oklyn
  */
@@ -361,5 +361,5 @@ window.customCards.push({
   description:
     "Pool monitoring and control card for the Oklyn integration (pH, RedOx, temperatures, pump, auxiliaries).",
   preview: true,
-  documentationURL: "https://github.com/ADNPolymerase/oklyn-card",
+  documentationURL: "https://github.com/ADNPolymerase/hacs.oklyn-card",
 });
