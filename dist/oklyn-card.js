@@ -5,7 +5,7 @@
  * Works with the Oklyn integration: https://github.com/ADNPolymerase/hacs.oklyn
  */
 
-const CARD_VERSION = "0.1.0";
+const CARD_VERSION = "0.2.0";
 
 console.info(
   `%c OKLYN-CARD %c v${CARD_VERSION} `,
