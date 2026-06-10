@@ -387,7 +387,7 @@ class OklynCardEditor extends HTMLElement {
       {
         name: "aux1_entity",
         label: "Auxiliaire 1",
-        selector: { entity: { domain: "switch" } },
+        selector: { entity: { domain: ["switch", "binary_sensor"] } },
       },
       {
         name: "aux1_mode",
@@ -406,7 +406,7 @@ class OklynCardEditor extends HTMLElement {
       {
         name: "aux2_entity",
         label: "Auxiliaire 2",
-        selector: { entity: { domain: "switch" } },
+        selector: { entity: { domain: ["switch", "binary_sensor"] } },
       },
       {
         name: "aux2_mode",
