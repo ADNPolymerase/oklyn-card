@@ -38,6 +38,8 @@ class OklynCard extends HTMLElement {
       ph_offset: 0,
       show_aux1: true,
       show_aux2: false,
+      aux1_mode: "switch",
+      aux2_mode: "switch",
       show_last_updated: true,
       ph_min: 6.8,
       ph_max: 7.6,
@@ -51,6 +53,8 @@ class OklynCard extends HTMLElement {
       title: "Piscine",
       show_aux1: true,
       show_aux2: false,
+      aux1_mode: "switch",
+      aux2_mode: "switch",
       show_last_updated: true,
       aux1_name: "Auxiliaire 1",
       aux2_name: "Auxiliaire 2",
@@ -134,6 +138,12 @@ class OklynCard extends HTMLElement {
           font-size: 0.75em; color: var(--secondary-text-color); margin-left: 6px;
         }
         .okl-unavailable { opacity: 0.4; }
+        .okl-badge {
+          font-size: 0.8em; font-weight: 600; padding: 4px 12px;
+          border-radius: 10px; background: var(--secondary-background-color);
+          color: var(--secondary-text-color);
+        }
+        .okl-badge.okl-badge-on { background: #00b894; color: #fff; }
       </style>
       <div class="okl-wrap">
         <div class="okl-title"><ha-icon icon="mdi:pool"></ha-icon><span id="okl-title-text"></span><span class="okl-updated" id="okl-updated"></span></div>
@@ -153,12 +163,14 @@ class OklynCard extends HTMLElement {
             <ha-icon icon="mdi:lightbulb"></ha-icon><span id="okl-aux1-name"></span>
           </span>
           <ha-switch id="okl-aux1-switch"></ha-switch>
+          <span class="okl-badge" id="okl-aux1-badge" hidden></span>
         </div>
         <div class="okl-section" id="okl-aux2-section" hidden>
           <span class="okl-section-label">
             <ha-icon icon="mdi:power-socket-eu"></ha-icon><span id="okl-aux2-name"></span>
           </span>
           <ha-switch id="okl-aux2-switch"></ha-switch>
+          <span class="okl-badge" id="okl-aux2-badge" hidden></span>
         </div>
       </div>
     `;
@@ -173,24 +185,19 @@ class OklynCard extends HTMLElement {
       });
     });
 
-    const aux1 = card.querySelector("#okl-aux1-switch");
-    aux1.addEventListener("click", () => {
-      const st = this._state(c.aux1_entity);
-      this._hass.callService(
-        "switch",
-        st && st.state === "on" ? "turn_off" : "turn_on",
-        { entity_id: c.aux1_entity }
-      );
-    });
-    const aux2 = card.querySelector("#okl-aux2-switch");
-    aux2.addEventListener("click", () => {
-      const st = this._state(c.aux2_entity);
-      this._hass.callService(
-        "switch",
-        st && st.state === "on" ? "turn_off" : "turn_on",
-        { entity_id: c.aux2_entity }
-      );
-    });
+    const bindAuxToggle = (switchId, entityKey, modeKey) => {
+      card.querySelector(switchId).addEventListener("click", () => {
+        if (this._config[modeKey] === "regulator") return;
+        const st = this._state(this._config[entityKey]);
+        this._hass.callService(
+          "switch",
+          st && st.state === "on" ? "turn_off" : "turn_on",
+          { entity_id: this._config[entityKey] }
+        );
+      });
+    };
+    bindAuxToggle("#okl-aux1-switch", "aux1_entity", "aux1_mode");
+    bindAuxToggle("#okl-aux2-switch", "aux2_entity", "aux2_mode");
   }
 
   _metricHtml(label, st, unit, cls) {
@@ -281,21 +288,31 @@ class OklynCard extends HTMLElement {
       });
     }
 
-    // Aux 1 / Aux 2
-    const auxRow = (show, entity, nameId, sectionId, switchId, defName) => {
+    // Aux 1 / Aux 2 — mode "switch" (toggleable) or "regulator" (read-only)
+    const auxRow = (show, entity, mode, nameId, sectionId, switchId, badgeId, defName) => {
       const section = this.querySelector(sectionId);
       const st = this._state(entity);
       section.hidden = !show || !entity;
-      if (!section.hidden) {
-        this.querySelector(nameId).textContent =
-          (st && st.attributes.friendly_name) || defName;
-        const sw = this.querySelector(switchId);
-        sw.checked = !!st && st.state === "on";
-        section.classList.toggle("okl-unavailable", !st || st.state === "unavailable");
+      if (section.hidden) return;
+      this.querySelector(nameId).textContent =
+        (st && st.attributes.friendly_name) || defName;
+      section.classList.toggle("okl-unavailable", !st || st.state === "unavailable");
+      const isOn = !!st && st.state === "on";
+      const sw = this.querySelector(switchId);
+      const badge = this.querySelector(badgeId);
+      if (mode === "regulator") {
+        sw.hidden = true;
+        badge.hidden = false;
+        badge.textContent = isOn ? "Allumé" : "Éteint";
+        badge.classList.toggle("okl-badge-on", isOn);
+      } else {
+        sw.hidden = false;
+        badge.hidden = true;
+        sw.checked = isOn;
       }
     };
-    auxRow(c.show_aux1, c.aux1_entity, "#okl-aux1-name", "#okl-aux1-section", "#okl-aux1-switch", c.aux1_name);
-    auxRow(c.show_aux2, c.aux2_entity, "#okl-aux2-name", "#okl-aux2-section", "#okl-aux2-switch", c.aux2_name);
+    auxRow(c.show_aux1, c.aux1_entity, c.aux1_mode, "#okl-aux1-name", "#okl-aux1-section", "#okl-aux1-switch", "#okl-aux1-badge", c.aux1_name);
+    auxRow(c.show_aux2, c.aux2_entity, c.aux2_mode, "#okl-aux2-name", "#okl-aux2-section", "#okl-aux2-switch", "#okl-aux2-badge", c.aux2_name);
   }
 }
 
@@ -372,11 +389,37 @@ class OklynCardEditor extends HTMLElement {
         label: "Auxiliaire 1",
         selector: { entity: { domain: "switch" } },
       },
+      {
+        name: "aux1_mode",
+        label: "Type auxiliaire 1",
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: [
+              { value: "switch", label: "Interrupteur (commandable)" },
+              { value: "regulator", label: "Régulateur (lecture seule)" },
+            ],
+          },
+        },
+      },
       { name: "show_aux2", label: "Afficher l'auxiliaire 2", selector: { boolean: {} } },
       {
         name: "aux2_entity",
         label: "Auxiliaire 2",
         selector: { entity: { domain: "switch" } },
+      },
+      {
+        name: "aux2_mode",
+        label: "Type auxiliaire 2",
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: [
+              { value: "switch", label: "Interrupteur (commandable)" },
+              { value: "regulator", label: "Régulateur (lecture seule)" },
+            ],
+          },
+        },
       },
       {
         name: "ph_offset",
