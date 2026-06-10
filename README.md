@@ -1,11 +1,11 @@
 # Oklyn Card
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/ADNPolymerase/hacs.oklyn-card)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/ADNPolymerase/oklyn-card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://buymeacoffee.com/adnpolymerase)
 
 <a href="https://buymeacoffee.com/adnpolymerase" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-orange.png" alt="Buy Me A Coffee" height="60"></a>
 
-Custom Lovelace card for the [Oklyn pool controller integration](https://github.com/ADNPolymerase/hacs.oklyn).
+Custom Lovelace card for the [Oklyn pool controller integration](https://github.com/ADNPolymerase/ha-oklyn).
 
 > 🇫🇷 Carte Lovelace pour l'intégration Oklyn — voir la section française plus bas.
 
@@ -18,13 +18,13 @@ Custom Lovelace card for the [Oklyn pool controller integration](https://github.
 - Full visual editor (no YAML needed)
 - **No dependency**: plain JavaScript, no Bubble Card or any other frontend plugin required
 
-> Requires the [Oklyn integration](https://github.com/ADNPolymerase/hacs.oklyn) to provide the entities:
-> [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ADNPolymerase&repository=hacs.oklyn&category=integration)
+> Requires the [Oklyn integration](https://github.com/ADNPolymerase/ha-oklyn) to provide the entities:
+> [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ADNPolymerase&repository=ha-oklyn&category=integration)
 
 ## Installation (HACS)
 
 1. **HACS → ⋮ → Custom repositories**
-2. Add `https://github.com/ADNPolymerase/hacs.oklyn-card` with category **Dashboard**
+2. Add `https://github.com/ADNPolymerase/oklyn-card` with category **Dashboard**
 3. Search for **Oklyn Card** and download it
 4. Reload your browser (the resource is registered automatically)
 
@@ -92,7 +92,7 @@ apply to the corrected value. Leave at `0` to show the raw value.
 
 # 🇫🇷 Oklyn Card
 
-Carte Lovelace pour l'[intégration Oklyn](https://github.com/ADNPolymerase/hacs.oklyn).
+Carte Lovelace pour l'[intégration Oklyn](https://github.com/ADNPolymerase/ha-oklyn).
 
 ## Fonctionnalités
 
@@ -103,13 +103,13 @@ Carte Lovelace pour l'[intégration Oklyn](https://github.com/ADNPolymerase/hacs
 - Éditeur visuel complet (aucun YAML requis)
 - **Aucune dépendance** : JavaScript pur, pas besoin de Bubble Card ni d'aucun autre plugin
 
-> Nécessite l'[intégration Oklyn](https://github.com/ADNPolymerase/hacs.oklyn) pour fournir les entités :
-> [![Ouvrir dans HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ADNPolymerase&repository=hacs.oklyn&category=integration)
+> Nécessite l'[intégration Oklyn](https://github.com/ADNPolymerase/ha-oklyn) pour fournir les entités :
+> [![Ouvrir dans HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ADNPolymerase&repository=ha-oklyn&category=integration)
 
 ## Installation (HACS)
 
 1. **HACS → ⋮ → Dépôts personnalisés**
-2. Ajouter `https://github.com/ADNPolymerase/hacs.oklyn-card` en catégorie **Dashboard**
+2. Ajouter `https://github.com/ADNPolymerase/oklyn-card` en catégorie **Dashboard**
 3. Rechercher **Oklyn Card** et télécharger
 4. Recharger le navigateur
 
