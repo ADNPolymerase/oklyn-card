@@ -38,6 +38,7 @@ class OklynCard extends HTMLElement {
       ph_offset: 0,
       show_aux1: true,
       show_aux2: false,
+      show_last_updated: true,
       ph_min: 6.8,
       ph_max: 7.6,
       orp_min: 550,
@@ -50,6 +51,7 @@ class OklynCard extends HTMLElement {
       title: "Piscine",
       show_aux1: true,
       show_aux2: false,
+      show_last_updated: true,
       aux1_name: "Auxiliaire 1",
       aux2_name: "Auxiliaire 2",
       ph_offset: 0,
@@ -91,6 +93,10 @@ class OklynCard extends HTMLElement {
           font-size: 1.2em; font-weight: 600; margin-bottom: 12px;
           display: flex; align-items: center; gap: 8px;
         }
+        .okl-updated {
+          margin-left: auto; font-size: 0.65em; font-weight: 400;
+          color: var(--secondary-text-color);
+        }
         .okl-metrics {
           display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
           gap: 10px; margin-bottom: 16px;
@@ -130,7 +136,7 @@ class OklynCard extends HTMLElement {
         .okl-unavailable { opacity: 0.4; }
       </style>
       <div class="okl-wrap">
-        <div class="okl-title"><ha-icon icon="mdi:pool"></ha-icon><span id="okl-title-text"></span></div>
+        <div class="okl-title"><ha-icon icon="mdi:pool"></ha-icon><span id="okl-title-text"></span><span class="okl-updated" id="okl-updated"></span></div>
         <div class="okl-metrics" id="okl-metrics"></div>
         <div class="okl-section" id="okl-pump-section">
           <span class="okl-section-label">
@@ -200,6 +206,31 @@ class OklynCard extends HTMLElement {
     const c = this._config;
 
     this.querySelector("#okl-title-text").textContent = c.title;
+
+    // Last updated (top right) — most recent update among the 4 sensors
+    const updatedEl = this.querySelector("#okl-updated");
+    if (c.show_last_updated) {
+      const times = [c.ph_entity, c.orp_entity, c.water_entity, c.air_entity]
+        .map((e) => this._state(e))
+        .filter(Boolean)
+        .map((st) => new Date(st.last_updated).getTime());
+      if (times.length) {
+        const last = new Date(Math.max(...times));
+        const sameDay = last.toDateString() === new Date().toDateString();
+        updatedEl.textContent = sameDay
+          ? last.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          : last.toLocaleString([], {
+              day: "2-digit",
+              month: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+      } else {
+        updatedEl.textContent = "";
+      }
+    } else {
+      updatedEl.textContent = "";
+    }
 
     const ph = this._state(c.ph_entity);
     const orp = this._state(c.orp_entity);
@@ -305,6 +336,11 @@ class OklynCardEditor extends HTMLElement {
     this._form.data = this._config;
     this._form.schema = [
       { name: "title", label: "Titre", selector: { text: {} } },
+      {
+        name: "show_last_updated",
+        label: "Afficher la dernière mise à jour",
+        selector: { boolean: {} },
+      },
       {
         name: "ph_entity",
         label: "Capteur pH",

@@ -69,6 +69,7 @@ orp_max: 800
 | `aux1_entity` | — | Auxiliary 1 switch |
 | `show_aux2` | `false` | Show the Auxiliary 2 row |
 | `aux2_entity` | — | Auxiliary 2 switch |
+| `show_last_updated` | `true` | Show last data update time at the top right |
 | `ph_offset` | `0` | pH calibration correction, positive or negative (e.g. `-0.99`) |
 | `ph_min` / `ph_max` | 6.8 / 7.6 | Green zone for pH |
 | `orp_min` / `orp_max` | 550 / 800 | Green zone for RedOx (mV) |
