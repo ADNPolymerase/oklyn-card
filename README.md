@@ -69,7 +69,7 @@ orp_max: 800
 | `aux1_entity` | — | Auxiliary 1 switch |
 | `show_aux2` | `false` | Show the Auxiliary 2 row |
 | `aux2_entity` | — | Auxiliary 2 switch |
-| `ph_offset_entity` | — | Optional `input_number` helper holding a pH calibration offset |
+| `ph_offset` | `0` | pH calibration correction, positive or negative (e.g. `-0.99`) |
 | `ph_min` / `ph_max` | 6.8 / 7.6 | Green zone for pH |
 | `orp_min` / `orp_max` | 550 / 800 | Green zone for RedOx (mV) |
 
@@ -77,15 +77,10 @@ Out-of-range values are shown in orange, in-range values in green.
 
 ### pH calibration offset
 
-If your Oklyn pH probe drifts (e.g. reads 8.38 when a manual test says 7.39), create a
-helper: **Settings → Devices & Services → Helpers → Create helper → Number**
-(e.g. `input_number.oklyn_ph_offset`, min `-2`, max `2`, step `0.05`), then select it
-in the card editor. The card then:
-
-- displays the **corrected pH** (raw value + offset) with the label "pH corrigé"
-- shows a "Correction pH" row with **− / +** buttons to adjust the offset directly
-  from the card (step follows the helper's step)
-- applies the green/orange thresholds to the corrected value
+If your Oklyn pH probe drifts (e.g. reads 8.38 when a manual test says 7.39), set
+`ph_offset` in the card editor (here: `-0.99`). The card displays the **corrected pH**
+(raw value + offset) with the label "pH corrigé", and the green/orange thresholds
+apply to the corrected value. Leave at `0` to show the raw value.
 
 ---
 
