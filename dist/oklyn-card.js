@@ -5,7 +5,7 @@
  * Works with the Oklyn integration: https://github.com/ADNPolymerase/hacs.oklyn
  */
 
-const CARD_VERSION = "0.2.1";
+const CARD_VERSION = "0.2.2";
 
 console.info(
   `%c OKLYN-CARD %c v${CARD_VERSION} `,
@@ -75,6 +75,17 @@ class OklynCard extends HTMLElement {
       this._built = true;
     }
     this._update();
+  }
+
+  connectedCallback() {
+    // Refresh every minute so the relative "depuis X min" stays current
+    this._tick = setInterval(() => {
+      if (this._hass && this._built) this._update();
+    }, 60000);
+  }
+
+  disconnectedCallback() {
+    clearInterval(this._tick);
   }
 
   getCardSize() {
@@ -223,16 +234,16 @@ class OklynCard extends HTMLElement {
         .filter(Boolean)
         .map((st) => new Date(st.last_updated).getTime());
       if (times.length) {
-        const last = new Date(Math.max(...times));
-        const sameDay = last.toDateString() === new Date().toDateString();
-        updatedEl.textContent = sameDay
-          ? last.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-          : last.toLocaleString([], {
-              day: "2-digit",
-              month: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-            });
+        const elapsedMin = Math.floor((Date.now() - Math.max(...times)) / 60000);
+        if (elapsedMin < 1) {
+          updatedEl.textContent = "à l'instant";
+        } else if (elapsedMin < 60) {
+          updatedEl.textContent = `depuis ${elapsedMin} min`;
+        } else if (elapsedMin < 1440) {
+          updatedEl.textContent = `depuis ${Math.floor(elapsedMin / 60)} h`;
+        } else {
+          updatedEl.textContent = `depuis ${Math.floor(elapsedMin / 1440)} j`;
+        }
       } else {
         updatedEl.textContent = "";
       }

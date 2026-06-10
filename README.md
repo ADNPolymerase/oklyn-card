@@ -16,7 +16,10 @@ Custom Lovelace card for the [Oklyn pool controller integration](https://github.
 - Pump mode control: AUTO / ON / OFF buttons (with real running status)
 - Auxiliary 1 and Auxiliary 2 toggles — **each can be shown or hidden**
 - Full visual editor (no YAML needed)
-- No build step, no external dependency
+- **No dependency**: plain JavaScript, no Bubble Card or any other frontend plugin required
+
+> Requires the [Oklyn integration](https://github.com/ADNPolymerase/hacs.oklyn) to provide the entities:
+> [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ADNPolymerase&repository=hacs.oklyn&category=integration)
 
 ## Installation (HACS)
 
@@ -96,8 +99,12 @@ Carte Lovelace pour l'[intégration Oklyn](https://github.com/ADNPolymerase/hacs
 - pH et RedOx avec seuils colorés (vert/orange)
 - Températures eau et air
 - Contrôle pompe : boutons AUTO / ON / OFF (avec état réel de marche)
-- Auxiliaires 1 et 2 — **chacun affichable ou masquable**
+- Auxiliaires 1 et 2 — **chacun affichable ou masquable**, type interrupteur ou régulateur
 - Éditeur visuel complet (aucun YAML requis)
+- **Aucune dépendance** : JavaScript pur, pas besoin de Bubble Card ni d'aucun autre plugin
+
+> Nécessite l'[intégration Oklyn](https://github.com/ADNPolymerase/hacs.oklyn) pour fournir les entités :
+> [![Ouvrir dans HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ADNPolymerase&repository=hacs.oklyn&category=integration)
 
 ## Installation (HACS)
 
