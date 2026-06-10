@@ -5,7 +5,7 @@
  * Works with the Oklyn integration: https://github.com/ADNPolymerase/hacs.oklyn
  */
 
-const CARD_VERSION = "0.2.0";
+const CARD_VERSION = "0.2.1";
 
 console.info(
   `%c OKLYN-CARD %c v${CARD_VERSION} `,
@@ -144,6 +144,7 @@ class OklynCard extends HTMLElement {
           color: var(--secondary-text-color);
         }
         .okl-badge.okl-badge-on { background: #00b894; color: #fff; }
+        ha-switch[hidden], .okl-badge[hidden] { display: none !important; }
       </style>
       <div class="okl-wrap">
         <div class="okl-title"><ha-icon icon="mdi:pool"></ha-icon><span id="okl-title-text"></span><span class="okl-updated" id="okl-updated"></span></div>
