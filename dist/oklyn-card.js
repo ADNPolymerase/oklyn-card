@@ -108,6 +108,7 @@ class OklynCard extends HTMLElement {
           display: flex; align-items: center; justify-content: space-between;
           padding: 8px 0; border-top: 1px solid var(--divider-color);
         }
+        .okl-section[hidden] { display: none; }
         .okl-section-label {
           display: flex; align-items: center; gap: 8px; font-weight: 500;
         }
