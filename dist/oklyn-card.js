@@ -35,6 +35,7 @@ class OklynCard extends HTMLElement {
         find("select.oklyn_mode_pompe") || find("select.oklyn_pump_mode"),
       aux1_entity: find("switch.oklyn_auxiliaire_1") || find("switch.oklyn_aux"),
       aux2_entity: find("switch.oklyn_auxiliaire_2"),
+      ph_offset_entity: find("input_number.oklyn_ph_offset"),
       show_aux1: true,
       show_aux2: false,
       ph_min: 6.8,
@@ -140,6 +141,15 @@ class OklynCard extends HTMLElement {
             <button class="okl-btn" data-mode="off">OFF</button>
           </span>
         </div>
+        <div class="okl-section" id="okl-ph-offset-section" hidden>
+          <span class="okl-section-label">
+            <ha-icon icon="mdi:ph"></ha-icon>Correction pH<span class="okl-status" id="okl-ph-offset-value"></span>
+          </span>
+          <span class="okl-buttons">
+            <button class="okl-btn" id="okl-ph-minus">−</button>
+            <button class="okl-btn" id="okl-ph-plus">+</button>
+          </span>
+        </div>
         <div class="okl-section" id="okl-aux1-section" hidden>
           <span class="okl-section-label">
             <ha-icon icon="mdi:lightbulb"></ha-icon><span id="okl-aux1-name"></span>
@@ -164,6 +174,18 @@ class OklynCard extends HTMLElement {
         });
       });
     });
+
+    const phStep = (dir) => {
+      const st = this._state(c.ph_offset_entity);
+      if (!st) return;
+      const step = parseFloat(st.attributes.step) || 0.05;
+      this._hass.callService("input_number", "set_value", {
+        entity_id: c.ph_offset_entity,
+        value: Math.round((parseFloat(st.state) + dir * step) * 100) / 100,
+      });
+    };
+    card.querySelector("#okl-ph-minus").addEventListener("click", () => phStep(-1));
+    card.querySelector("#okl-ph-plus").addEventListener("click", () => phStep(1));
 
     const aux1 = card.querySelector("#okl-aux1-switch");
     aux1.addEventListener("click", () => {
@@ -204,8 +226,21 @@ class OklynCard extends HTMLElement {
     const water = this._state(c.water_entity);
     const air = this._state(c.air_entity);
 
+    // pH correction offset (optional input_number helper)
+    const offsetSt = this._state(c.ph_offset_entity);
+    const offset = offsetSt ? parseFloat(offsetSt.state) || 0 : 0;
+    let phDisplay = ph;
+    if (ph && offset !== 0) {
+      phDisplay = {
+        ...ph,
+        state: (Math.round((parseFloat(ph.state) + offset) * 100) / 100).toString(),
+      };
+    }
+
     const phCls =
-      ph && (parseFloat(ph.state) < c.ph_min || parseFloat(ph.state) > c.ph_max)
+      phDisplay &&
+      (parseFloat(phDisplay.state) < c.ph_min ||
+        parseFloat(phDisplay.state) > c.ph_max)
         ? "okl-warn"
         : "okl-ok";
     const orpCls =
@@ -215,10 +250,20 @@ class OklynCard extends HTMLElement {
         : "okl-ok";
 
     this.querySelector("#okl-metrics").innerHTML =
-      this._metricHtml("pH", ph, "", phCls) +
+      this._metricHtml(offset !== 0 ? "pH corrigé" : "pH", phDisplay, "", phCls) +
       this._metricHtml("RedOx", orp, "mV", orpCls) +
       this._metricHtml("Eau", water, "°C", "") +
       this._metricHtml("Air", air, "°C", "");
+
+    // pH offset row
+    const offsetSection = this.querySelector("#okl-ph-offset-section");
+    offsetSection.hidden = !c.ph_offset_entity;
+    if (!offsetSection.hidden) {
+      offsetSection.classList.toggle("okl-unavailable", !offsetSt);
+      this.querySelector("#okl-ph-offset-value").textContent = offsetSt
+        ? `· ${offset > 0 ? "+" : ""}${offset.toFixed(2)}`
+        : "";
+    }
 
     // Pump
     const pump = this._state(c.pump_entity);
@@ -327,6 +372,11 @@ class OklynCardEditor extends HTMLElement {
         name: "aux2_entity",
         label: "Auxiliaire 2",
         selector: { entity: { domain: "switch" } },
+      },
+      {
+        name: "ph_offset_entity",
+        label: "Correction pH (input_number, optionnel)",
+        selector: { entity: { domain: "input_number" } },
       },
       {
         name: "ph_min",
