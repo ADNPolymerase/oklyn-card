@@ -34,6 +34,7 @@ class OklynCard extends HTMLElement {
       aux1_icon: "mdi:lightbulb", aux2_icon: "mdi:power-socket-eu",
       ph_min: 6.8, ph_max: 7.6, orp_min: 550, orp_max: 800,
       water_color: true, water_temp_blue: 26, water_temp_green: 30,
+      salt_min: 3, salt_max: 5,
     };
   }
 
@@ -45,6 +46,7 @@ class OklynCard extends HTMLElement {
       aux1_icon: "mdi:lightbulb", aux2_icon: "mdi:power-socket-eu",
       ph_offset: 0, ph_min: 6.8, ph_max: 7.6, orp_min: 550, orp_max: 800,
       water_color: true, water_temp_blue: 26, water_temp_green: 30,
+      salt_min: 3, salt_max: 5,
       ...config,
     };
     this._built = false;
@@ -194,7 +196,7 @@ class OklynCard extends HTMLElement {
       this._metricHtml("RedOx", orp, "mV", orpCls) +
       this._metricHtml("Eau", water, _D + "C", this._waterCls(water)) +
       this._metricHtml("Air", air, _D + "C", "") +
-      (c.salt_entity ? this._metricHtml("Sel", salt, "g/L", "") : "");
+      (c.salt_entity ? this._metricHtml("Sel", salt, "g/L", salt && c.salt_min != null ? (parseFloat(salt.state) < c.salt_min || parseFloat(salt.state) > c.salt_max ? "okl-warn" : "okl-ok") : "") : "");
 
     const pump = this._state(c.pump_entity);
     const pumpSection = this.querySelector("#okl-pump-section");
@@ -237,19 +239,22 @@ class OklynCardEditor extends HTMLElement {
 
   _render() {
     if (!this._hass || !this._config) return;
+    const c = this._config;
     if (!this._form) {
       this.innerHTML = "";
       this._form = document.createElement("ha-form");
       this._form.computeLabel = (s) => s.label || s.name;
       this._form.addEventListener("value-changed", (ev) => {
         this._config = ev.detail.value;
+        this._render();
         this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: this._config }, bubbles: true, composed: true }));
       });
       this.appendChild(this._form);
     }
     this._form.hass = this._hass;
-    this._form.data = this._config;
-    this._form.schema = [
+    this._form.data = c;
+    const _aux_opts = [{ value: "switch", label: "Interrupteur (commandable)" }, { value: "regulator", label: "R" + _e + "gulateur (lecture seule)" }];
+    const schema = [
       { name: "title", label: "Titre", selector: { text: {} } },
       { name: "show_last_updated", label: "Afficher la derni" + _eg + "re mise " + _A + " jour", selector: { boolean: {} } },
       { name: "ph_entity", label: "Capteur pH", selector: { entity: { domain: "sensor" } } },
@@ -258,14 +263,24 @@ class OklynCardEditor extends HTMLElement {
       { name: "air_entity", label: "Temp" + _e + "rature air", selector: { entity: { domain: "sensor" } } },
       { name: "pump_entity", label: "Mode pompe", selector: { entity: { domain: "select" } } },
       { name: "show_aux1", label: "Afficher l'auxiliaire 1", selector: { boolean: {} } },
+    ];
+    if (c.show_aux1) schema.push(
       { name: "aux1_entity", label: "Auxiliaire 1", selector: { entity: { domain: ["switch", "binary_sensor"] } } },
-      { name: "aux1_mode", label: "Type auxiliaire 1", selector: { select: { mode: "dropdown", options: [{ value: "switch", label: "Interrupteur (commandable)" }, { value: "regulator", label: "R" + _e + "gulateur (lecture seule)" }] } } },
+      { name: "aux1_mode", label: "Type auxiliaire 1", selector: { select: { mode: "dropdown", options: _aux_opts } } },
       { name: "aux1_icon", label: "Ic" + _o + "ne auxiliaire 1", selector: { icon: {} } },
-      { name: "show_aux2", label: "Afficher l'auxiliaire 2", selector: { boolean: {} } },
+    );
+    schema.push({ name: "show_aux2", label: "Afficher l'auxiliaire 2", selector: { boolean: {} } });
+    if (c.show_aux2) schema.push(
       { name: "aux2_entity", label: "Auxiliaire 2", selector: { entity: { domain: ["switch", "binary_sensor"] } } },
-      { name: "aux2_mode", label: "Type auxiliaire 2", selector: { select: { mode: "dropdown", options: [{ value: "switch", label: "Interrupteur (commandable)" }, { value: "regulator", label: "R" + _e + "gulateur (lecture seule)" }] } } },
+      { name: "aux2_mode", label: "Type auxiliaire 2", selector: { select: { mode: "dropdown", options: _aux_opts } } },
       { name: "aux2_icon", label: "Ic" + _o + "ne auxiliaire 2", selector: { icon: {} } },
-      { name: "salt_entity", label: "Capteur sel (optionnel)", selector: { entity: { domain: "sensor" } } },
+    );
+    schema.push({ name: "salt_entity", label: "Capteur sel (optionnel)", selector: { entity: { domain: "sensor" } } });
+    if (c.salt_entity) schema.push(
+      { name: "salt_min", label: "Sel min g/L (zone verte)", selector: { number: { min: 0, max: 10, step: 0.1, mode: "box" } } },
+      { name: "salt_max", label: "Sel max g/L (zone verte)", selector: { number: { min: 0, max: 15, step: 0.1, mode: "box" } } },
+    );
+    schema.push(
       { name: "ph_offset", label: "Correction pH (ex : -0.99 ou 0.5)", selector: { number: { min: -3, max: 3, step: 0.01, mode: "box" } } },
       { name: "ph_min", label: "pH min (zone verte)", selector: { number: { min: 6, max: 8, step: 0.1, mode: "box" } } },
       { name: "ph_max", label: "pH max (zone verte)", selector: { number: { min: 6, max: 9, step: 0.1, mode: "box" } } },
@@ -274,7 +289,8 @@ class OklynCardEditor extends HTMLElement {
       { name: "water_color", label: "Colorier la temp" + _e + "rature eau", selector: { boolean: {} } },
       { name: "water_temp_blue", label: "Seuil bleu/vert (" + _D + "C)", selector: { number: { min: 10, max: 40, step: 0.5, mode: "box" } } },
       { name: "water_temp_green", label: "Seuil vert/orange (" + _D + "C)", selector: { number: { min: 10, max: 40, step: 0.5, mode: "box" } } },
-    ];
+    );
+    this._form.schema = schema;
   }
 }
 
