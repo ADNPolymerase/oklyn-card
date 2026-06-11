@@ -52,6 +52,7 @@ Or in YAML:
 ```yaml
 type: custom:oklyn-card
 title: Piscine
+model: analysis
 ph_entity: sensor.oklyn_ph
 orp_entity: sensor.oklyn_redox
 water_entity: sensor.oklyn_temperature_eau
@@ -60,12 +61,16 @@ pump_entity: select.oklyn_mode_pompe
 show_aux1: true
 aux1_entity: switch.oklyn_auxiliaire_1
 aux1_mode: switch
+aux1_icon: mdi:lightbulb
 show_aux2: false
 aux2_entity: switch.oklyn_auxiliaire_2
 aux2_mode: switch
+aux2_icon: mdi:power-socket-eu
 ph_offset: 0
+ph_color: true
 ph_min: 6.8
 ph_max: 7.6
+orp_color: true
 orp_min: 550
 orp_max: 800
 water_color: true
@@ -78,22 +83,30 @@ show_last_updated: true
 
 | Option | Default | Description |
 |---|---|---|
+| `model` | `analysis` | Oklyn model: `filtration` (temperatures only), `analysis` (+ pH, RedOx), `analysis_salt` (+ salt). Hides irrelevant metrics and editor options |
 | `title` | Piscine | Card title |
-| `ph_entity` | — | pH sensor |
-| `orp_entity` | — | RedOx/ORP sensor |
+| `ph_entity` | — | pH sensor (`analysis` / `analysis_salt`) |
+| `orp_entity` | — | RedOx/ORP sensor (`analysis` / `analysis_salt`) |
 | `water_entity` | — | Water temperature sensor |
 | `air_entity` | — | Air temperature sensor |
 | `pump_entity` | — | Pump mode select entity |
+| `salt_entity` | — | Salt sensor in g/L (`analysis_salt` only) |
 | `show_aux1` | `true` | Show the Auxiliary 1 row |
 | `aux1_entity` | — | Auxiliary 1 switch or binary_sensor |
 | `aux1_mode` | `switch` | `switch` = toggleable, `regulator` = read-only display |
+| `aux1_icon` | `mdi:lightbulb` | Icon for the Auxiliary 1 row |
 | `show_aux2` | `false` | Show the Auxiliary 2 row |
 | `aux2_entity` | — | Auxiliary 2 switch or binary_sensor |
 | `aux2_mode` | `switch` | Same as `aux1_mode` |
+| `aux2_icon` | `mdi:power-socket-eu` | Icon for the Auxiliary 2 row |
 | `show_last_updated` | `true` | Show last data update time (top right) |
 | `ph_offset` | `0` | pH calibration correction, positive or negative (e.g. `-0.99`) |
+| `ph_color` | `true` | Enable green/orange color coding for pH |
 | `ph_min` / `ph_max` | 6.8 / 7.6 | Green zone for pH |
+| `orp_color` | `true` | Enable green/orange color coding for RedOx |
 | `orp_min` / `orp_max` | 550 / 800 | Green zone for RedOx (mV) |
+| `salt_color` | `true` | Enable green/orange color coding for salt |
+| `salt_min` / `salt_max` | 3 / 5 | Green zone for salt (g/L) |
 | `water_color` | `true` | Enable color coding for water temperature |
 | `water_temp_blue` | `26` | Below this threshold → blue (cold) |
 | `water_temp_green` | `30` | Between blue and green threshold → green (ideal), above → orange (warm) |
