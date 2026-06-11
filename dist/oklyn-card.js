@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.2.8";
+const CARD_VERSION = "0.2.9";
 const _D = String.fromCharCode(176);
 const _M = String.fromCharCode(183);
 const _A = String.fromCharCode(224);
@@ -33,7 +33,7 @@ class OklynCard extends HTMLElement {
       aux1_entity: find("switch.oklyn_auxiliaire_1") || find("switch.oklyn_aux"),
       aux2_entity: find("switch.oklyn_auxiliaire_2"),
       salt_entity: salt,
-      ph_offset: 0, show_aux1: true, show_aux2: false,
+      ph_offset: 0, show_aux1: true, show_aux2: false, show_pump_runtime: false,
       aux1_mode: "switch", aux2_mode: "switch", show_last_updated: true,
       aux1_icon: "mdi:lightbulb", aux2_icon: "mdi:power-socket-eu",
       ph_color: true, ph_min: 6.8, ph_max: 7.6,
@@ -45,7 +45,7 @@ class OklynCard extends HTMLElement {
 
   setConfig(config) {
     this._config = {
-      title: "Piscine", show_aux1: true, show_aux2: false,
+      title: "Piscine", show_aux1: true, show_aux2: false, show_pump_runtime: false,
       aux1_mode: "switch", aux2_mode: "switch", show_last_updated: true,
       aux1_name: "Auxiliaire 1", aux2_name: "Auxiliaire 2",
       aux1_icon: "mdi:lightbulb", aux2_icon: "mdi:power-socket-eu",
@@ -168,6 +168,50 @@ class OklynCard extends HTMLElement {
     return "okl-warn";
   }
 
+  _fmtDuration(ms) {
+    const m = Math.round(ms / 60000);
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    return h > 0 ? h + "h" + String(mm).padStart(2, "0") : mm + " min";
+  }
+
+  _runtimeHtml() {
+    const have = this._rtMs != null;
+    return "<div class=\"okl-metric" + (have ? "" : " okl-unavailable") + "\"><div class=\"okl-value\">" + (have ? this._fmtDuration(this._rtMs) : "—") + "</div><div class=\"okl-label\">Filtration 24h</div></div>";
+  }
+
+  _fetchPumpRuntime() {
+    const c = this._config;
+    if (this._rtEntity !== c.pump_entity) { this._rtEntity = c.pump_entity; this._rtAt = 0; this._rtMs = null; }
+    const now = Date.now();
+    if (this._rtBusy || now - (this._rtAt || 0) < 300000) return;
+    this._rtBusy = true;
+    this._hass.callWS({
+      type: "history/history_during_period",
+      start_time: new Date(now - 86400000).toISOString(),
+      end_time: new Date(now).toISOString(),
+      entity_ids: [c.pump_entity],
+      minimal_response: false,
+      no_attributes: false,
+      significant_changes_only: false,
+    }).then((resp) => {
+      const states = (resp && resp[c.pump_entity]) || [];
+      let ms = 0;
+      let onSince = null;
+      for (const s of states) {
+        const t = s.lu * 1000;
+        const isOn = !!(s.a && s.a.status === "on");
+        if (isOn && onSince === null) onSince = t;
+        else if (!isOn && onSince !== null) { ms += t - onSince; onSince = null; }
+      }
+      if (onSince !== null) ms += Date.now() - onSince;
+      this._rtMs = ms;
+      this._rtAt = Date.now();
+      this._rtBusy = false;
+      if (this._built) this._update();
+    }).catch(() => { this._rtBusy = false; this._rtAt = Date.now(); });
+  }
+
   _update() {
     const c = this._config;
     this.querySelector("#okl-title-text").textContent = c.title;
@@ -204,12 +248,15 @@ class OklynCard extends HTMLElement {
     const orpCls = c.orp_color ? (orp && (parseFloat(orp.state) < c.orp_min || parseFloat(orp.state) > c.orp_max) ? "okl-warn" : "okl-ok") : "";
     const saltCls = c.salt_color && salt ? (parseFloat(salt.state) < c.salt_min || parseFloat(salt.state) > c.salt_max ? "okl-warn" : "okl-ok") : "";
 
+    if (c.show_pump_runtime && c.pump_entity) this._fetchPumpRuntime();
+
     this.querySelector("#okl-metrics").innerHTML =
       (hasAnalysis ? this._metricHtml(offset !== 0 ? "pH corrig" + _e : "pH", phDisplay, "", phCls) : "") +
       (hasAnalysis ? this._metricHtml("RedOx", orp, "mV", orpCls) : "") +
       this._metricHtml("Eau", water, _D + "C", this._waterCls(water)) +
       this._metricHtml("Air", air, _D + "C", "") +
-      (hasSalt && c.salt_entity ? this._metricHtml("Sel", salt, "g/L", saltCls) : "");
+      (hasSalt && c.salt_entity ? this._metricHtml("Sel", salt, "g/L", saltCls) : "") +
+      (c.show_pump_runtime && c.pump_entity ? this._runtimeHtml() : "");
 
     const pump = this._state(c.pump_entity);
     const pumpSection = this.querySelector("#okl-pump-section");
@@ -320,6 +367,7 @@ class OklynCardEditor extends HTMLElement {
     schema.push(
       { name: "air_entity", label: "Temp" + _e + "rature air", selector: { entity: { domain: "sensor" } } },
       { name: "pump_entity", label: "Mode pompe", selector: { entity: { domain: "select" } } },
+      { name: "show_pump_runtime", label: "Afficher le temps de filtration (24h)", selector: { boolean: {} } },
     );
     if (hasSalt) {
       schema.push(

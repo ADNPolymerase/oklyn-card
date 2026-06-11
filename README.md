@@ -58,6 +58,7 @@ orp_entity: sensor.oklyn_redox
 water_entity: sensor.oklyn_temperature_eau
 air_entity: sensor.oklyn_temperature_air
 pump_entity: select.oklyn_mode_pompe
+show_pump_runtime: false
 show_aux1: true
 aux1_entity: switch.oklyn_auxiliaire_1
 aux1_mode: switch
@@ -90,6 +91,7 @@ show_last_updated: true
 | `water_entity` | — | Water temperature sensor |
 | `air_entity` | — | Air temperature sensor |
 | `pump_entity` | — | Pump mode select entity |
+| `show_pump_runtime` | `false` | Show cumulative pump runtime over the last 24h as a metric tile (computed from the pump status history, refreshed every 5 min) |
 | `salt_entity` | — | Salt sensor in g/L (`analysis_salt` only) |
 | `show_aux1` | `true` | Show the Auxiliary 1 row |
 | `aux1_entity` | — | Auxiliary 1 switch or binary_sensor |
