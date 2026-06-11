@@ -29,26 +29,29 @@ class OklynCard extends HTMLElement {
       aux1_entity: find("switch.oklyn_auxiliaire_1") || find("switch.oklyn_aux"),
       aux2_entity: find("switch.oklyn_auxiliaire_2"),
       salt_entity: find("sensor.oklyn_salt") || find("sensor.oklyn_sel"),
-      ph_offset: 0, show_aux1: true, show_aux2: false,
+      ph_offset: 0, show_aux1: true, show_aux2: false, show_salt: false,
       aux1_mode: "switch", aux2_mode: "switch", show_last_updated: true,
       aux1_icon: "mdi:lightbulb", aux2_icon: "mdi:power-socket-eu",
-      ph_min: 6.8, ph_max: 7.6, orp_min: 550, orp_max: 800,
+      ph_color: true, ph_min: 6.8, ph_max: 7.6,
+      orp_color: true, orp_min: 550, orp_max: 800,
       water_color: true, water_temp_blue: 26, water_temp_green: 30,
-      salt_min: 3, salt_max: 5,
+      salt_color: true, salt_min: 3, salt_max: 5,
     };
   }
 
   setConfig(config) {
     this._config = {
-      title: "Piscine", show_aux1: true, show_aux2: false,
+      title: "Piscine", show_aux1: true, show_aux2: false, show_salt: false,
       aux1_mode: "switch", aux2_mode: "switch", show_last_updated: true,
       aux1_name: "Auxiliaire 1", aux2_name: "Auxiliaire 2",
       aux1_icon: "mdi:lightbulb", aux2_icon: "mdi:power-socket-eu",
-      ph_offset: 0, ph_min: 6.8, ph_max: 7.6, orp_min: 550, orp_max: 800,
+      ph_offset: 0, ph_color: true, ph_min: 6.8, ph_max: 7.6,
+      orp_color: true, orp_min: 550, orp_max: 800,
       water_color: true, water_temp_blue: 26, water_temp_green: 30,
-      salt_min: 3, salt_max: 5,
+      salt_color: true, salt_min: 3, salt_max: 5,
       ...config,
     };
+    if (config.show_salt === undefined && config.salt_entity) this._config.show_salt = true;
     this._built = false;
   }
 
@@ -188,15 +191,16 @@ class OklynCard extends HTMLElement {
       phDisplay = { ...ph, state: (Math.round((parseFloat(ph.state) + offset) * 100) / 100).toString() };
     }
 
-    const phCls = phDisplay && (parseFloat(phDisplay.state) < c.ph_min || parseFloat(phDisplay.state) > c.ph_max) ? "okl-warn" : "okl-ok";
-    const orpCls = orp && (parseFloat(orp.state) < c.orp_min || parseFloat(orp.state) > c.orp_max) ? "okl-warn" : "okl-ok";
+    const phCls = c.ph_color ? (phDisplay && (parseFloat(phDisplay.state) < c.ph_min || parseFloat(phDisplay.state) > c.ph_max) ? "okl-warn" : "okl-ok") : "";
+    const orpCls = c.orp_color ? (orp && (parseFloat(orp.state) < c.orp_min || parseFloat(orp.state) > c.orp_max) ? "okl-warn" : "okl-ok") : "";
+    const saltCls = c.salt_color && salt ? (parseFloat(salt.state) < c.salt_min || parseFloat(salt.state) > c.salt_max ? "okl-warn" : "okl-ok") : "";
 
     this.querySelector("#okl-metrics").innerHTML =
       this._metricHtml(offset !== 0 ? "pH corrig" + _e : "pH", phDisplay, "", phCls) +
       this._metricHtml("RedOx", orp, "mV", orpCls) +
       this._metricHtml("Eau", water, _D + "C", this._waterCls(water)) +
       this._metricHtml("Air", air, _D + "C", "") +
-      (c.salt_entity ? this._metricHtml("Sel", salt, "g/L", salt && c.salt_min != null ? (parseFloat(salt.state) < c.salt_min || parseFloat(salt.state) > c.salt_max ? "okl-warn" : "okl-ok") : "") : "");
+      (c.show_salt && c.salt_entity ? this._metricHtml("Sel", salt, "g/L", saltCls) : "");
 
     const pump = this._state(c.pump_entity);
     const pumpSection = this.querySelector("#okl-pump-section");
@@ -234,7 +238,14 @@ class OklynCard extends HTMLElement {
 }
 
 class OklynCardEditor extends HTMLElement {
-  setConfig(config) { this._config = { ...config }; this._render(); }
+  setConfig(config) {
+    this._config = {
+      show_aux1: true, show_aux2: false, show_salt: !!config.salt_entity,
+      ph_color: true, orp_color: true, water_color: true, salt_color: true,
+      ...config,
+    };
+    this._render();
+  }
   set hass(hass) { this._hass = hass; this._render(); }
 
   _render() {
@@ -258,12 +269,45 @@ class OklynCardEditor extends HTMLElement {
       { name: "title", label: "Titre", selector: { text: {} } },
       { name: "show_last_updated", label: "Afficher la derni" + _eg + "re mise " + _A + " jour", selector: { boolean: {} } },
       { name: "ph_entity", label: "Capteur pH", selector: { entity: { domain: "sensor" } } },
+      { name: "ph_offset", label: "Correction pH (ex : -0.99 ou 0.5)", selector: { number: { min: -3, max: 3, step: 0.01, mode: "box" } } },
+      { name: "ph_color", label: "Colorier le pH (zone verte)", selector: { boolean: {} } },
+    ];
+    if (c.ph_color) schema.push(
+      { name: "ph_min", label: "pH min (zone verte)", selector: { number: { min: 6, max: 8, step: 0.1, mode: "box" } } },
+      { name: "ph_max", label: "pH max (zone verte)", selector: { number: { min: 6, max: 9, step: 0.1, mode: "box" } } },
+    );
+    schema.push(
       { name: "orp_entity", label: "Capteur RedOx", selector: { entity: { domain: "sensor" } } },
+      { name: "orp_color", label: "Colorier le RedOx (zone verte)", selector: { boolean: {} } },
+    );
+    if (c.orp_color) schema.push(
+      { name: "orp_min", label: "RedOx min (mV)", selector: { number: { min: 0, max: 1000, step: 10, mode: "box" } } },
+      { name: "orp_max", label: "RedOx max (mV)", selector: { number: { min: 0, max: 1200, step: 10, mode: "box" } } },
+    );
+    schema.push(
       { name: "water_entity", label: "Temp" + _e + "rature eau", selector: { entity: { domain: "sensor" } } },
+      { name: "water_color", label: "Colorier la temp" + _e + "rature eau", selector: { boolean: {} } },
+    );
+    if (c.water_color) schema.push(
+      { name: "water_temp_blue", label: "Seuil bleu/vert (" + _D + "C)", selector: { number: { min: 10, max: 40, step: 0.5, mode: "box" } } },
+      { name: "water_temp_green", label: "Seuil vert/orange (" + _D + "C)", selector: { number: { min: 10, max: 40, step: 0.5, mode: "box" } } },
+    );
+    schema.push(
       { name: "air_entity", label: "Temp" + _e + "rature air", selector: { entity: { domain: "sensor" } } },
       { name: "pump_entity", label: "Mode pompe", selector: { entity: { domain: "select" } } },
-      { name: "show_aux1", label: "Afficher l'auxiliaire 1", selector: { boolean: {} } },
-    ];
+      { name: "show_salt", label: "Afficher le sel", selector: { boolean: {} } },
+    );
+    if (c.show_salt) {
+      schema.push(
+        { name: "salt_entity", label: "Capteur sel", selector: { entity: { domain: "sensor" } } },
+        { name: "salt_color", label: "Colorier le sel (zone verte)", selector: { boolean: {} } },
+      );
+      if (c.salt_color) schema.push(
+        { name: "salt_min", label: "Sel min g/L (zone verte)", selector: { number: { min: 0, max: 10, step: 0.1, mode: "box" } } },
+        { name: "salt_max", label: "Sel max g/L (zone verte)", selector: { number: { min: 0, max: 15, step: 0.1, mode: "box" } } },
+      );
+    }
+    schema.push({ name: "show_aux1", label: "Afficher l'auxiliaire 1", selector: { boolean: {} } });
     if (c.show_aux1) schema.push(
       { name: "aux1_entity", label: "Auxiliaire 1", selector: { entity: { domain: ["switch", "binary_sensor"] } } },
       { name: "aux1_mode", label: "Type auxiliaire 1", selector: { select: { mode: "dropdown", options: _aux_opts } } },
@@ -274,21 +318,6 @@ class OklynCardEditor extends HTMLElement {
       { name: "aux2_entity", label: "Auxiliaire 2", selector: { entity: { domain: ["switch", "binary_sensor"] } } },
       { name: "aux2_mode", label: "Type auxiliaire 2", selector: { select: { mode: "dropdown", options: _aux_opts } } },
       { name: "aux2_icon", label: "Ic" + _o + "ne auxiliaire 2", selector: { icon: {} } },
-    );
-    schema.push({ name: "salt_entity", label: "Capteur sel (optionnel)", selector: { entity: { domain: "sensor" } } });
-    if (c.salt_entity) schema.push(
-      { name: "salt_min", label: "Sel min g/L (zone verte)", selector: { number: { min: 0, max: 10, step: 0.1, mode: "box" } } },
-      { name: "salt_max", label: "Sel max g/L (zone verte)", selector: { number: { min: 0, max: 15, step: 0.1, mode: "box" } } },
-    );
-    schema.push(
-      { name: "ph_offset", label: "Correction pH (ex : -0.99 ou 0.5)", selector: { number: { min: -3, max: 3, step: 0.01, mode: "box" } } },
-      { name: "ph_min", label: "pH min (zone verte)", selector: { number: { min: 6, max: 8, step: 0.1, mode: "box" } } },
-      { name: "ph_max", label: "pH max (zone verte)", selector: { number: { min: 6, max: 9, step: 0.1, mode: "box" } } },
-      { name: "orp_min", label: "RedOx min (mV)", selector: { number: { min: 0, max: 1000, step: 10, mode: "box" } } },
-      { name: "orp_max", label: "RedOx max (mV)", selector: { number: { min: 0, max: 1200, step: 10, mode: "box" } } },
-      { name: "water_color", label: "Colorier la temp" + _e + "rature eau", selector: { boolean: {} } },
-      { name: "water_temp_blue", label: "Seuil bleu/vert (" + _D + "C)", selector: { number: { min: 10, max: 40, step: 0.5, mode: "box" } } },
-      { name: "water_temp_green", label: "Seuil vert/orange (" + _D + "C)", selector: { number: { min: 10, max: 40, step: 0.5, mode: "box" } } },
     );
     this._form.schema = schema;
   }
