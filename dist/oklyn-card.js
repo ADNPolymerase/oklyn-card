@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.2.6";
+const CARD_VERSION = "0.2.7";
 const _D = String.fromCharCode(176);
 const _M = String.fromCharCode(183);
 const _A = String.fromCharCode(224);
@@ -6,6 +6,7 @@ const _e = String.fromCharCode(233);
 const _E = String.fromCharCode(201);
 const _ec = String.fromCharCode(234);
 const _eg = String.fromCharCode(232);
+const _o = String.fromCharCode(244);
 
 console.info(
   "%c OKLYN-CARD %c v" + CARD_VERSION + " ",
@@ -27,8 +28,10 @@ class OklynCard extends HTMLElement {
       pump_entity: find("select.oklyn_mode_pompe") || find("select.oklyn_pump_mode"),
       aux1_entity: find("switch.oklyn_auxiliaire_1") || find("switch.oklyn_aux"),
       aux2_entity: find("switch.oklyn_auxiliaire_2"),
+      salt_entity: find("sensor.oklyn_salt") || find("sensor.oklyn_sel"),
       ph_offset: 0, show_aux1: true, show_aux2: false,
       aux1_mode: "switch", aux2_mode: "switch", show_last_updated: true,
+      aux1_icon: "mdi:lightbulb", aux2_icon: "mdi:power-socket-eu",
       ph_min: 6.8, ph_max: 7.6, orp_min: 550, orp_max: 800,
       water_color: true, water_temp_blue: 26, water_temp_green: 30,
     };
@@ -39,6 +42,7 @@ class OklynCard extends HTMLElement {
       title: "Piscine", show_aux1: true, show_aux2: false,
       aux1_mode: "switch", aux2_mode: "switch", show_last_updated: true,
       aux1_name: "Auxiliaire 1", aux2_name: "Auxiliaire 2",
+      aux1_icon: "mdi:lightbulb", aux2_icon: "mdi:power-socket-eu",
       ph_offset: 0, ph_min: 6.8, ph_max: 7.6, orp_min: 550, orp_max: 800,
       water_color: true, water_temp_blue: 26, water_temp_green: 30,
       ...config,
@@ -108,12 +112,12 @@ class OklynCard extends HTMLElement {
           </div>
         </div>
         <div class="okl-section" id="okl-aux1-section" hidden>
-          <span class="okl-section-label"><ha-icon icon="mdi:lightbulb"></ha-icon><span id="okl-aux1-name"></span></span>
+          <span class="okl-section-label"><ha-icon id="okl-aux1-icon" icon="${c.aux1_icon || 'mdi:lightbulb'}"></ha-icon><span id="okl-aux1-name"></span></span>
           <ha-switch id="okl-aux1-switch"></ha-switch>
           <span class="okl-badge" id="okl-aux1-badge" hidden></span>
         </div>
         <div class="okl-section" id="okl-aux2-section" hidden>
-          <span class="okl-section-label"><ha-icon icon="mdi:power-socket-eu"></ha-icon><span id="okl-aux2-name"></span></span>
+          <span class="okl-section-label"><ha-icon id="okl-aux2-icon" icon="${c.aux2_icon || 'mdi:power-socket-eu'}"></ha-icon><span id="okl-aux2-name"></span></span>
           <ha-switch id="okl-aux2-switch"></ha-switch>
           <span class="okl-badge" id="okl-aux2-badge" hidden></span>
         </div>
@@ -174,6 +178,7 @@ class OklynCard extends HTMLElement {
     const orp = this._state(c.orp_entity);
     const water = this._state(c.water_entity);
     const air = this._state(c.air_entity);
+    const salt = this._state(c.salt_entity);
 
     const offset = parseFloat(c.ph_offset) || 0;
     let phDisplay = ph;
@@ -188,7 +193,8 @@ class OklynCard extends HTMLElement {
       this._metricHtml(offset !== 0 ? "pH corrig" + _e : "pH", phDisplay, "", phCls) +
       this._metricHtml("RedOx", orp, "mV", orpCls) +
       this._metricHtml("Eau", water, _D + "C", this._waterCls(water)) +
-      this._metricHtml("Air", air, _D + "C", "");
+      this._metricHtml("Air", air, _D + "C", "") +
+      (c.salt_entity ? this._metricHtml("Sel", salt, "g/L", "") : "");
 
     const pump = this._state(c.pump_entity);
     const pumpSection = this.querySelector("#okl-pump-section");
@@ -254,9 +260,12 @@ class OklynCardEditor extends HTMLElement {
       { name: "show_aux1", label: "Afficher l'auxiliaire 1", selector: { boolean: {} } },
       { name: "aux1_entity", label: "Auxiliaire 1", selector: { entity: { domain: ["switch", "binary_sensor"] } } },
       { name: "aux1_mode", label: "Type auxiliaire 1", selector: { select: { mode: "dropdown", options: [{ value: "switch", label: "Interrupteur (commandable)" }, { value: "regulator", label: "R" + _e + "gulateur (lecture seule)" }] } } },
+      { name: "aux1_icon", label: "Ic" + _o + "ne auxiliaire 1 (ex: mdi:lightbulb)", selector: { icon: {} } },
       { name: "show_aux2", label: "Afficher l'auxiliaire 2", selector: { boolean: {} } },
       { name: "aux2_entity", label: "Auxiliaire 2", selector: { entity: { domain: ["switch", "binary_sensor"] } } },
       { name: "aux2_mode", label: "Type auxiliaire 2", selector: { select: { mode: "dropdown", options: [{ value: "switch", label: "Interrupteur (commandable)" }, { value: "regulator", label: "R" + _e + "gulateur (lecture seule)" }] } } },
+      { name: "aux2_icon", label: "Ic" + _o + "ne auxiliaire 2 (ex: mdi:fan)", selector: { icon: {} } },
+      { name: "salt_entity", label: "Capteur sel (optionnel)", selector: { entity: { domain: "sensor" } } },
       { name: "ph_offset", label: "Correction pH (ex : -0.99 ou 0.5)", selector: { number: { min: -3, max: 3, step: 0.01, mode: "box" } } },
       { name: "ph_min", label: "pH min (zone verte)", selector: { number: { min: 6, max: 8, step: 0.1, mode: "box" } } },
       { name: "ph_max", label: "pH max (zone verte)", selector: { number: { min: 6, max: 9, step: 0.1, mode: "box" } } },
