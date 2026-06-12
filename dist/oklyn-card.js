@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.2.9";
+const CARD_VERSION = "0.2.10";
 const _D = String.fromCharCode(176);
 const _M = String.fromCharCode(183);
 const _A = String.fromCharCode(224);
@@ -248,6 +248,12 @@ class OklynCard extends HTMLElement {
     const orpCls = c.orp_color ? (orp && (parseFloat(orp.state) < c.orp_min || parseFloat(orp.state) > c.orp_max) ? "okl-warn" : "okl-ok") : "";
     const saltCls = c.salt_color && salt ? (parseFloat(salt.state) < c.salt_min || parseFloat(salt.state) > c.salt_max ? "okl-warn" : "okl-ok") : "";
 
+    const pumpForRt = this._state(c.pump_entity);
+    const pumpStatusNow = pumpForRt ? pumpForRt.attributes.status : null;
+    if (this._lastPumpStatus !== pumpStatusNow) {
+      if (this._lastPumpStatus !== undefined) this._rtAt = 0;
+      this._lastPumpStatus = pumpStatusNow;
+    }
     if (c.show_pump_runtime && c.pump_entity) this._fetchPumpRuntime();
 
     this.querySelector("#okl-metrics").innerHTML =
@@ -264,7 +270,7 @@ class OklynCard extends HTMLElement {
     if (pump) {
       const status = pump.attributes.status;
       this.querySelector("#okl-pump-status").textContent = status
-        ? (status === "on" ? _M + " en marche" : _M + " arr" + _ec + "t" + _e + "e") : "";
+        ? (status === "on" ? "en marche" : "arr" + _ec + "t" + _e + "e") : "";
       this.querySelectorAll(".okl-btn").forEach((btn) => {
         btn.classList.toggle("okl-active", btn.dataset.mode === pump.state);
       });
