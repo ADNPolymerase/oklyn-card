@@ -86,6 +86,7 @@ show_last_updated: true
 |---|---|---|
 | `model` | `analysis` | Oklyn model: `filtration` (temperatures only), `analysis` (+ pH, RedOx), `analysis_salt` (+ salt). Hides irrelevant metrics and editor options |
 | `title` | Piscine | Card title |
+| `metrics_order` | `[ph, orp, salt, water, air, runtime]` | Display order of the metric tiles — drag to reorder in the editor |
 | `ph_entity` | — | pH sensor (`analysis` / `analysis_salt`) |
 | `orp_entity` | — | RedOx/ORP sensor (`analysis` / `analysis_salt`) |
 | `water_entity` | — | Water temperature sensor |

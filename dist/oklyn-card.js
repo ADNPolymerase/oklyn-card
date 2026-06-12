@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.2.10";
+const CARD_VERSION = "0.2.11";
 const _D = String.fromCharCode(176);
 const _M = String.fromCharCode(183);
 const _A = String.fromCharCode(224);
@@ -8,6 +8,7 @@ const _ec = String.fromCharCode(234);
 const _eg = String.fromCharCode(232);
 const _o = String.fromCharCode(244);
 const OKL_MODELS = ["filtration", "analysis", "analysis_salt"];
+const OKL_METRICS = ["ph", "orp", "salt", "water", "air", "runtime"];
 
 console.info(
   "%c OKLYN-CARD %c v" + CARD_VERSION + " ",
@@ -53,6 +54,7 @@ class OklynCard extends HTMLElement {
       orp_color: true, orp_min: 550, orp_max: 800,
       water_color: true, water_temp_blue: 26, water_temp_green: 30,
       salt_color: true, salt_min: 3, salt_max: 5,
+      metrics_order: OKL_METRICS.slice(),
       ...config,
     };
     if (!OKL_MODELS.includes(this._config.model)) {
@@ -256,13 +258,17 @@ class OklynCard extends HTMLElement {
     }
     if (c.show_pump_runtime && c.pump_entity) this._fetchPumpRuntime();
 
-    this.querySelector("#okl-metrics").innerHTML =
-      (hasAnalysis ? this._metricHtml(offset !== 0 ? "pH corrig" + _e : "pH", phDisplay, "", phCls) : "") +
-      (hasAnalysis ? this._metricHtml("RedOx", orp, "mV", orpCls) : "") +
-      this._metricHtml("Eau", water, _D + "C", this._waterCls(water)) +
-      this._metricHtml("Air", air, _D + "C", "") +
-      (hasSalt && c.salt_entity ? this._metricHtml("Sel", salt, "g/L", saltCls) : "") +
-      (c.show_pump_runtime && c.pump_entity ? this._runtimeHtml() : "");
+    const tiles = {
+      ph: hasAnalysis ? this._metricHtml(offset !== 0 ? "pH corrig" + _e : "pH", phDisplay, "", phCls) : "",
+      orp: hasAnalysis ? this._metricHtml("RedOx", orp, "mV", orpCls) : "",
+      salt: hasSalt && c.salt_entity ? this._metricHtml("Sel", salt, "g/L", saltCls) : "",
+      water: this._metricHtml("Eau", water, _D + "C", this._waterCls(water)),
+      air: this._metricHtml("Air", air, _D + "C", ""),
+      runtime: c.show_pump_runtime && c.pump_entity ? this._runtimeHtml() : "",
+    };
+    const order = Array.isArray(c.metrics_order) && c.metrics_order.length ? c.metrics_order : OKL_METRICS;
+    const keys = order.filter((k) => k in tiles).concat(OKL_METRICS.filter((k) => !order.includes(k)));
+    this.querySelector("#okl-metrics").innerHTML = keys.map((k) => tiles[k]).join("");
 
     const pump = this._state(c.pump_entity);
     const pumpSection = this.querySelector("#okl-pump-section");
@@ -304,6 +310,7 @@ class OklynCardEditor extends HTMLElement {
     this._config = {
       show_aux1: true, show_aux2: false,
       ph_color: true, orp_color: true, water_color: true, salt_color: true,
+      metrics_order: OKL_METRICS.slice(),
       ...config,
     };
     if (!OKL_MODELS.includes(this._config.model)) {
@@ -338,10 +345,19 @@ class OklynCardEditor extends HTMLElement {
     ];
     const hasAnalysis = c.model !== "filtration";
     const hasSalt = c.model === "analysis_salt";
+    const _metric_opts = [
+      { value: "ph", label: "pH" },
+      { value: "orp", label: "RedOx" },
+      { value: "salt", label: "Sel" },
+      { value: "water", label: "Eau" },
+      { value: "air", label: "Air" },
+      { value: "runtime", label: "Filtration 24h" },
+    ];
     const schema = [
       { name: "model", label: "Mod" + _eg + "le Oklyn", selector: { select: { mode: "dropdown", options: _model_opts } } },
       { name: "title", label: "Titre", selector: { text: {} } },
       { name: "show_last_updated", label: "Afficher la derni" + _eg + "re mise " + _A + " jour", selector: { boolean: {} } },
+      { name: "metrics_order", label: "Ordre des mesures (glisser pour r" + _e + "organiser)", selector: { select: { multiple: true, reorder: true, options: _metric_opts } } },
     ];
     if (hasAnalysis) {
       schema.push(
