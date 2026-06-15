@@ -1,14 +1,45 @@
-const CARD_VERSION = "0.2.11";
-const _D = String.fromCharCode(176);
-const _M = String.fromCharCode(183);
-const _A = String.fromCharCode(224);
-const _e = String.fromCharCode(233);
-const _E = String.fromCharCode(201);
-const _ec = String.fromCharCode(234);
-const _eg = String.fromCharCode(232);
-const _o = String.fromCharCode(244);
+const CARD_VERSION = "0.3.0";
 const OKL_MODELS = ["filtration", "analysis", "analysis_salt"];
 const OKL_METRICS = ["ph", "orp", "salt", "water", "air", "runtime"];
+
+const OKL_T = {
+  en: {
+    pool: "Pool", pump: "Pump", running: "running", stopped: "stopped", on: "On", off: "Off",
+    aux1: "Auxiliary 1", aux2: "Auxiliary 2", langlabel: "Language",
+    phCorr: "pH corrected", redox: "RedOx", salt: "Salt", water: "Water", air: "Air", runtime: "Filtration 24h",
+    fmtAgo: (m) => m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.floor(m / 60) + "h ago" : Math.floor(m / 1440) + "d ago",
+    model: "Oklyn model", mFiltration: "Filtration (temperature only)", mAnalysis: "Filtration + Analysis (pH, RedOx)", mSalt: "Filtration + Analysis + Salt",
+    title: "Title", showUpdated: "Show last update", order: "Metrics order (drag to reorder)",
+    swCtrl: "Switch (controllable)", regRO: "Regulator (read-only)",
+    phSensor: "pH sensor", phOffset: "pH correction (e.g. -0.99 or 0.5)", phColor: "Color pH (green zone)", phMin: "pH min (green zone)", phMax: "pH max (green zone)",
+    redoxSensor: "RedOx sensor", redoxColor: "Color RedOx (green zone)", redoxMin: "RedOx min (mV)", redoxMax: "RedOx max (mV)",
+    waterSensor: "Water temperature", waterColor: "Color water temperature", waterBlue: "Blue/green threshold (°C)", waterGreen: "Green/orange threshold (°C)",
+    airSensor: "Air temperature", pumpSensor: "Pump mode", showRuntime: "Show filtration time (24h)",
+    saltSensor: "Salt sensor", saltColor: "Color salt (green zone)", saltMin: "Salt min g/L (green zone)", saltMax: "Salt max g/L (green zone)",
+    showAux1: "Show auxiliary 1", showAux2: "Show auxiliary 2", auxType1: "Auxiliary 1 type", auxType2: "Auxiliary 2 type", auxIcon1: "Auxiliary 1 icon", auxIcon2: "Auxiliary 2 icon",
+  },
+  fr: {
+    pool: "Piscine", pump: "Pompe", running: "en marche", stopped: "arrêtée", on: "Allumé", off: "Éteint",
+    aux1: "Auxiliaire 1", aux2: "Auxiliaire 2", langlabel: "Langue",
+    phCorr: "pH corrigé", redox: "RedOx", salt: "Sel", water: "Eau", air: "Air", runtime: "Filtration 24h",
+    fmtAgo: (m) => m < 1 ? "à l'instant" : m < 60 ? "depuis " + m + " min" : m < 1440 ? "depuis " + Math.floor(m / 60) + " h" : "depuis " + Math.floor(m / 1440) + " j",
+    model: "Modèle Oklyn", mFiltration: "Filtration (température seule)", mAnalysis: "Filtration + Analyse (pH, RedOx)", mSalt: "Filtration + Analyse + Sel",
+    title: "Titre", showUpdated: "Afficher la dernière mise à jour", order: "Ordre des mesures (glisser pour réorganiser)",
+    swCtrl: "Interrupteur (commandable)", regRO: "Régulateur (lecture seule)",
+    phSensor: "Capteur pH", phOffset: "Correction pH (ex : -0.99 ou 0.5)", phColor: "Colorier le pH (zone verte)", phMin: "pH min (zone verte)", phMax: "pH max (zone verte)",
+    redoxSensor: "Capteur RedOx", redoxColor: "Colorier le RedOx (zone verte)", redoxMin: "RedOx min (mV)", redoxMax: "RedOx max (mV)",
+    waterSensor: "Température eau", waterColor: "Colorier la température eau", waterBlue: "Seuil bleu/vert (°C)", waterGreen: "Seuil vert/orange (°C)",
+    airSensor: "Température air", pumpSensor: "Mode pompe", showRuntime: "Afficher le temps de filtration (24h)",
+    saltSensor: "Capteur sel", saltColor: "Colorier le sel (zone verte)", saltMin: "Sel min g/L (zone verte)", saltMax: "Sel max g/L (zone verte)",
+    showAux1: "Afficher l'auxiliaire 1", showAux2: "Afficher l'auxiliaire 2", auxType1: "Type auxiliaire 1", auxType2: "Type auxiliaire 2", auxIcon1: "Icône auxiliaire 1", auxIcon2: "Icône auxiliaire 2",
+  },
+};
+
+function oklLang(hass, cfg) {
+  let l = (cfg && cfg.language) || (hass && ((hass.locale && hass.locale.language) || hass.language)) || "en";
+  l = String(l).toLowerCase().split("-")[0];
+  return l === "fr" ? "fr" : "en";
+}
 
 console.info(
   "%c OKLYN-CARD %c v" + CARD_VERSION + " ",
@@ -24,7 +55,7 @@ class OklynCard extends HTMLElement {
     const ph = find("sensor.oklyn_ph");
     const salt = find("sensor.oklyn_salt") || find("sensor.oklyn_sel");
     return {
-      title: "Piscine",
+      title: OKL_T[oklLang(hass, {})].pool,
       model: salt ? "analysis_salt" : (ph ? "analysis" : "filtration"),
       ph_entity: ph,
       orp_entity: find("sensor.oklyn_redox") || find("sensor.oklyn_orp"),
@@ -46,9 +77,8 @@ class OklynCard extends HTMLElement {
 
   setConfig(config) {
     this._config = {
-      title: "Piscine", show_aux1: true, show_aux2: false, show_pump_runtime: false,
+      show_aux1: true, show_aux2: false, show_pump_runtime: false,
       aux1_mode: "switch", aux2_mode: "switch", show_last_updated: true,
-      aux1_name: "Auxiliaire 1", aux2_name: "Auxiliaire 2",
       aux1_icon: "mdi:lightbulb", aux2_icon: "mdi:power-socket-eu",
       ph_offset: 0, ph_color: true, ph_min: 6.8, ph_max: 7.6,
       orp_color: true, orp_min: 550, orp_max: 800,
@@ -76,6 +106,9 @@ class OklynCard extends HTMLElement {
   disconnectedCallback() { clearInterval(this._tick); }
   getCardSize() { return 4; }
 
+  _lang() { return oklLang(this._hass, this._config); }
+  _t() { return OKL_T[this._lang()]; }
+
   _state(id) {
     if (!id || !this._hass.states[id]) return null;
     return this._hass.states[id];
@@ -83,6 +116,7 @@ class OklynCard extends HTMLElement {
 
   _build() {
     const c = this._config;
+    const t = this._t();
     this.innerHTML = "";
     const card = document.createElement("ha-card");
     card.innerHTML = `
@@ -116,7 +150,7 @@ class OklynCard extends HTMLElement {
         <div class="okl-metrics" id="okl-metrics"></div>
         <div class="okl-section okl-pump-section" id="okl-pump-section">
           <div class="okl-pump-row1">
-            <span class="okl-section-label"><ha-icon icon="mdi:pump"></ha-icon>Pompe</span>
+            <span class="okl-section-label"><ha-icon icon="mdi:pump"></ha-icon>${t.pump}</span>
             <span class="okl-status" id="okl-pump-status"></span>
           </div>
           <div class="okl-pump-row2">
@@ -179,7 +213,7 @@ class OklynCard extends HTMLElement {
 
   _runtimeHtml() {
     const have = this._rtMs != null;
-    return "<div class=\"okl-metric" + (have ? "" : " okl-unavailable") + "\"><div class=\"okl-value\">" + (have ? this._fmtDuration(this._rtMs) : "—") + "</div><div class=\"okl-label\">Filtration 24h</div></div>";
+    return "<div class=\"okl-metric" + (have ? "" : " okl-unavailable") + "\"><div class=\"okl-value\">" + (have ? this._fmtDuration(this._rtMs) : "—") + "</div><div class=\"okl-label\">" + this._t().runtime + "</div></div>";
   }
 
   _fetchPumpRuntime() {
@@ -216,20 +250,15 @@ class OklynCard extends HTMLElement {
 
   _update() {
     const c = this._config;
-    this.querySelector("#okl-title-text").textContent = c.title;
+    const t = this._t();
+    this.querySelector("#okl-title-text").textContent = c.title || t.pool;
 
     const updatedEl = this.querySelector("#okl-updated");
     if (c.show_last_updated) {
       const times = [c.ph_entity, c.orp_entity, c.water_entity, c.air_entity]
         .map((e) => this._state(e)).filter(Boolean)
         .map((st) => new Date(st.last_updated).getTime());
-      if (times.length) {
-        const m = Math.floor((Date.now() - Math.max(...times)) / 60000);
-        if (m < 1) updatedEl.textContent = _A + " l'instant";
-        else if (m < 60) updatedEl.textContent = "depuis " + m + " min";
-        else if (m < 1440) updatedEl.textContent = "depuis " + Math.floor(m / 60) + " h";
-        else updatedEl.textContent = "depuis " + Math.floor(m / 1440) + " j";
-      } else updatedEl.textContent = "";
+      updatedEl.textContent = times.length ? t.fmtAgo(Math.floor((Date.now() - Math.max(...times)) / 60000)) : "";
     } else updatedEl.textContent = "";
 
     const ph = this._state(c.ph_entity);
@@ -259,11 +288,11 @@ class OklynCard extends HTMLElement {
     if (c.show_pump_runtime && c.pump_entity) this._fetchPumpRuntime();
 
     const tiles = {
-      ph: hasAnalysis ? this._metricHtml(offset !== 0 ? "pH corrig" + _e : "pH", phDisplay, "", phCls) : "",
-      orp: hasAnalysis ? this._metricHtml("RedOx", orp, "mV", orpCls) : "",
-      salt: hasSalt && c.salt_entity ? this._metricHtml("Sel", salt, "g/L", saltCls) : "",
-      water: this._metricHtml("Eau", water, _D + "C", this._waterCls(water)),
-      air: this._metricHtml("Air", air, _D + "C", ""),
+      ph: hasAnalysis ? this._metricHtml(offset !== 0 ? t.phCorr : "pH", phDisplay, "", phCls) : "",
+      orp: hasAnalysis ? this._metricHtml(t.redox, orp, "mV", orpCls) : "",
+      salt: hasSalt && c.salt_entity ? this._metricHtml(t.salt, salt, "g/L", saltCls) : "",
+      water: this._metricHtml(t.water, water, "°C", this._waterCls(water)),
+      air: this._metricHtml(t.air, air, "°C", ""),
       runtime: c.show_pump_runtime && c.pump_entity ? this._runtimeHtml() : "",
     };
     const order = Array.isArray(c.metrics_order) && c.metrics_order.length ? c.metrics_order : OKL_METRICS;
@@ -275,8 +304,7 @@ class OklynCard extends HTMLElement {
     pumpSection.classList.toggle("okl-unavailable", !pump);
     if (pump) {
       const status = pump.attributes.status;
-      this.querySelector("#okl-pump-status").textContent = status
-        ? (status === "on" ? "en marche" : "arr" + _ec + "t" + _e + "e") : "";
+      this.querySelector("#okl-pump-status").textContent = status ? (status === "on" ? t.running : t.stopped) : "";
       this.querySelectorAll(".okl-btn").forEach((btn) => {
         btn.classList.toggle("okl-active", btn.dataset.mode === pump.state);
       });
@@ -294,14 +322,14 @@ class OklynCard extends HTMLElement {
       const badge = this.querySelector(badgeId);
       if (mode === "regulator") {
         sw.hidden = true; badge.hidden = false;
-        badge.textContent = isOn ? "Allum" + _e : _E + "teint";
+        badge.textContent = isOn ? t.on : t.off;
         badge.classList.toggle("okl-badge-on", isOn);
       } else {
         sw.hidden = false; badge.hidden = true; sw.checked = isOn;
       }
     };
-    auxRow(c.show_aux1, c.aux1_entity, c.aux1_mode, "#okl-aux1-name", "#okl-aux1-section", "#okl-aux1-switch", "#okl-aux1-badge", c.aux1_name);
-    auxRow(c.show_aux2, c.aux2_entity, c.aux2_mode, "#okl-aux2-name", "#okl-aux2-section", "#okl-aux2-switch", "#okl-aux2-badge", c.aux2_name);
+    auxRow(c.show_aux1, c.aux1_entity, c.aux1_mode, "#okl-aux1-name", "#okl-aux1-section", "#okl-aux1-switch", "#okl-aux1-badge", c.aux1_name || t.aux1);
+    auxRow(c.show_aux2, c.aux2_entity, c.aux2_mode, "#okl-aux2-name", "#okl-aux2-section", "#okl-aux2-switch", "#okl-aux2-badge", c.aux2_name || t.aux2);
   }
 }
 
@@ -324,6 +352,7 @@ class OklynCardEditor extends HTMLElement {
   _render() {
     if (!this._hass || !this._config) return;
     const c = this._config;
+    const t = OKL_T[oklLang(this._hass, c)];
     if (!this._form) {
       this.innerHTML = "";
       this._form = document.createElement("ha-form");
@@ -336,82 +365,83 @@ class OklynCardEditor extends HTMLElement {
       this.appendChild(this._form);
     }
     this._form.hass = this._hass;
-    this._form.data = c;
-    const _aux_opts = [{ value: "switch", label: "Interrupteur (commandable)" }, { value: "regulator", label: "R" + _e + "gulateur (lecture seule)" }];
+    this._form.data = { ...c, language: c.language || "" };
+    const _aux_opts = [{ value: "switch", label: t.swCtrl }, { value: "regulator", label: t.regRO }];
     const _model_opts = [
-      { value: "filtration", label: "Filtration (temp" + _e + "rature seule)" },
-      { value: "analysis", label: "Filtration + Analyse (pH, RedOx)" },
-      { value: "analysis_salt", label: "Filtration + Analyse + Sel" },
+      { value: "filtration", label: t.mFiltration },
+      { value: "analysis", label: t.mAnalysis },
+      { value: "analysis_salt", label: t.mSalt },
     ];
     const hasAnalysis = c.model !== "filtration";
     const hasSalt = c.model === "analysis_salt";
     const _metric_opts = [
       { value: "ph", label: "pH" },
-      { value: "orp", label: "RedOx" },
-      { value: "salt", label: "Sel" },
-      { value: "water", label: "Eau" },
-      { value: "air", label: "Air" },
-      { value: "runtime", label: "Filtration 24h" },
+      { value: "orp", label: t.redox },
+      { value: "salt", label: t.salt },
+      { value: "water", label: t.water },
+      { value: "air", label: t.air },
+      { value: "runtime", label: t.runtime },
     ];
     const schema = [
-      { name: "model", label: "Mod" + _eg + "le Oklyn", selector: { select: { mode: "dropdown", options: _model_opts } } },
-      { name: "title", label: "Titre", selector: { text: {} } },
-      { name: "show_last_updated", label: "Afficher la derni" + _eg + "re mise " + _A + " jour", selector: { boolean: {} } },
-      { name: "metrics_order", label: "Ordre des mesures (glisser pour r" + _e + "organiser)", selector: { select: { multiple: true, reorder: true, options: _metric_opts } } },
+      { name: "model", label: t.model, selector: { select: { mode: "dropdown", options: _model_opts } } },
+      { name: "title", label: t.title, selector: { text: {} } },
+      { name: "language", label: t.langlabel, selector: { select: { mode: "dropdown", options: [{ value: "", label: "Auto" }, { value: "en", label: "English" }, { value: "fr", label: "Français" }] } } },
+      { name: "show_last_updated", label: t.showUpdated, selector: { boolean: {} } },
+      { name: "metrics_order", label: t.order, selector: { select: { multiple: true, reorder: true, options: _metric_opts } } },
     ];
     if (hasAnalysis) {
       schema.push(
-        { name: "ph_entity", label: "Capteur pH", selector: { entity: { domain: "sensor" } } },
-        { name: "ph_offset", label: "Correction pH (ex : -0.99 ou 0.5)", selector: { number: { min: -3, max: 3, step: 0.01, mode: "box" } } },
-        { name: "ph_color", label: "Colorier le pH (zone verte)", selector: { boolean: {} } },
+        { name: "ph_entity", label: t.phSensor, selector: { entity: { domain: "sensor" } } },
+        { name: "ph_offset", label: t.phOffset, selector: { number: { min: -3, max: 3, step: 0.01, mode: "box" } } },
+        { name: "ph_color", label: t.phColor, selector: { boolean: {} } },
       );
       if (c.ph_color) schema.push(
-        { name: "ph_min", label: "pH min (zone verte)", selector: { number: { min: 6, max: 8, step: 0.1, mode: "box" } } },
-        { name: "ph_max", label: "pH max (zone verte)", selector: { number: { min: 6, max: 9, step: 0.1, mode: "box" } } },
+        { name: "ph_min", label: t.phMin, selector: { number: { min: 6, max: 8, step: 0.1, mode: "box" } } },
+        { name: "ph_max", label: t.phMax, selector: { number: { min: 6, max: 9, step: 0.1, mode: "box" } } },
       );
       schema.push(
-        { name: "orp_entity", label: "Capteur RedOx", selector: { entity: { domain: "sensor" } } },
-        { name: "orp_color", label: "Colorier le RedOx (zone verte)", selector: { boolean: {} } },
+        { name: "orp_entity", label: t.redoxSensor, selector: { entity: { domain: "sensor" } } },
+        { name: "orp_color", label: t.redoxColor, selector: { boolean: {} } },
       );
       if (c.orp_color) schema.push(
-        { name: "orp_min", label: "RedOx min (mV)", selector: { number: { min: 0, max: 1000, step: 10, mode: "box" } } },
-        { name: "orp_max", label: "RedOx max (mV)", selector: { number: { min: 0, max: 1200, step: 10, mode: "box" } } },
+        { name: "orp_min", label: t.redoxMin, selector: { number: { min: 0, max: 1000, step: 10, mode: "box" } } },
+        { name: "orp_max", label: t.redoxMax, selector: { number: { min: 0, max: 1200, step: 10, mode: "box" } } },
       );
     }
     schema.push(
-      { name: "water_entity", label: "Temp" + _e + "rature eau", selector: { entity: { domain: "sensor" } } },
-      { name: "water_color", label: "Colorier la temp" + _e + "rature eau", selector: { boolean: {} } },
+      { name: "water_entity", label: t.waterSensor, selector: { entity: { domain: "sensor" } } },
+      { name: "water_color", label: t.waterColor, selector: { boolean: {} } },
     );
     if (c.water_color) schema.push(
-      { name: "water_temp_blue", label: "Seuil bleu/vert (" + _D + "C)", selector: { number: { min: 10, max: 40, step: 0.5, mode: "box" } } },
-      { name: "water_temp_green", label: "Seuil vert/orange (" + _D + "C)", selector: { number: { min: 10, max: 40, step: 0.5, mode: "box" } } },
+      { name: "water_temp_blue", label: t.waterBlue, selector: { number: { min: 10, max: 40, step: 0.5, mode: "box" } } },
+      { name: "water_temp_green", label: t.waterGreen, selector: { number: { min: 10, max: 40, step: 0.5, mode: "box" } } },
     );
     schema.push(
-      { name: "air_entity", label: "Temp" + _e + "rature air", selector: { entity: { domain: "sensor" } } },
-      { name: "pump_entity", label: "Mode pompe", selector: { entity: { domain: "select" } } },
-      { name: "show_pump_runtime", label: "Afficher le temps de filtration (24h)", selector: { boolean: {} } },
+      { name: "air_entity", label: t.airSensor, selector: { entity: { domain: "sensor" } } },
+      { name: "pump_entity", label: t.pumpSensor, selector: { entity: { domain: "select" } } },
+      { name: "show_pump_runtime", label: t.showRuntime, selector: { boolean: {} } },
     );
     if (hasSalt) {
       schema.push(
-        { name: "salt_entity", label: "Capteur sel", selector: { entity: { domain: "sensor" } } },
-        { name: "salt_color", label: "Colorier le sel (zone verte)", selector: { boolean: {} } },
+        { name: "salt_entity", label: t.saltSensor, selector: { entity: { domain: "sensor" } } },
+        { name: "salt_color", label: t.saltColor, selector: { boolean: {} } },
       );
       if (c.salt_color) schema.push(
-        { name: "salt_min", label: "Sel min g/L (zone verte)", selector: { number: { min: 0, max: 10, step: 0.1, mode: "box" } } },
-        { name: "salt_max", label: "Sel max g/L (zone verte)", selector: { number: { min: 0, max: 15, step: 0.1, mode: "box" } } },
+        { name: "salt_min", label: t.saltMin, selector: { number: { min: 0, max: 10, step: 0.1, mode: "box" } } },
+        { name: "salt_max", label: t.saltMax, selector: { number: { min: 0, max: 15, step: 0.1, mode: "box" } } },
       );
     }
-    schema.push({ name: "show_aux1", label: "Afficher l'auxiliaire 1", selector: { boolean: {} } });
+    schema.push({ name: "show_aux1", label: t.showAux1, selector: { boolean: {} } });
     if (c.show_aux1) schema.push(
-      { name: "aux1_entity", label: "Auxiliaire 1", selector: { entity: { domain: ["switch", "binary_sensor"] } } },
-      { name: "aux1_mode", label: "Type auxiliaire 1", selector: { select: { mode: "dropdown", options: _aux_opts } } },
-      { name: "aux1_icon", label: "Ic" + _o + "ne auxiliaire 1", selector: { icon: {} } },
+      { name: "aux1_entity", label: t.aux1, selector: { entity: { domain: ["switch", "binary_sensor"] } } },
+      { name: "aux1_mode", label: t.auxType1, selector: { select: { mode: "dropdown", options: _aux_opts } } },
+      { name: "aux1_icon", label: t.auxIcon1, selector: { icon: {} } },
     );
-    schema.push({ name: "show_aux2", label: "Afficher l'auxiliaire 2", selector: { boolean: {} } });
+    schema.push({ name: "show_aux2", label: t.showAux2, selector: { boolean: {} } });
     if (c.show_aux2) schema.push(
-      { name: "aux2_entity", label: "Auxiliaire 2", selector: { entity: { domain: ["switch", "binary_sensor"] } } },
-      { name: "aux2_mode", label: "Type auxiliaire 2", selector: { select: { mode: "dropdown", options: _aux_opts } } },
-      { name: "aux2_icon", label: "Ic" + _o + "ne auxiliaire 2", selector: { icon: {} } },
+      { name: "aux2_entity", label: t.aux2, selector: { entity: { domain: ["switch", "binary_sensor"] } } },
+      { name: "aux2_mode", label: t.auxType2, selector: { select: { mode: "dropdown", options: _aux_opts } } },
+      { name: "aux2_icon", label: t.auxIcon2, selector: { icon: {} } },
     );
     this._form.schema = schema;
   }

@@ -10,6 +10,7 @@
 <a href="https://buymeacoffee.com/adnpolymerase" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-orange.png" alt="Buy Me A Coffee" height="60"></a>
 
 Custom Lovelace card for the [Oklyn pool controller integration](https://github.com/ADNPolymerase/ha-oklyn).
+Bilingual (English / French) — follows your Home Assistant language automatically, English by default.
 
 > 🇫🇷 Carte Lovelace pour l'intégration Oklyn — voir la section française plus bas.
 
@@ -85,7 +86,8 @@ show_last_updated: true
 | Option | Default | Description |
 |---|---|---|
 | `model` | `analysis` | Oklyn model: `filtration` (temperatures only), `analysis` (+ pH, RedOx), `analysis_salt` (+ salt). Hides irrelevant metrics and editor options |
-| `title` | Piscine | Card title |
+| `title` | _auto_ | Card title (defaults to a localized "Pool" / "Piscine") |
+| `language` | _auto_ | UI language: `en` or `fr`. Auto-detected from Home Assistant (English fallback). Also selectable in the editor |
 | `metrics_order` | `[ph, orp, salt, water, air, runtime]` | Display order of the metric tiles — drag to reorder in the editor |
 | `ph_entity` | — | pH sensor (`analysis` / `analysis_salt`) |
 | `orp_entity` | — | RedOx/ORP sensor (`analysis` / `analysis_salt`) |
@@ -135,6 +137,7 @@ and the thresholds apply to the corrected value. Leave at `0` for raw reading.
 # 🇫🇷 Oklyn Card
 
 Carte Lovelace pour l'[intégration Oklyn](https://github.com/ADNPolymerase/ha-oklyn).
+Bilingue (français / anglais) — suit automatiquement la langue de Home Assistant, anglais par défaut. Option `language` (`en`/`fr`) ou choix dans l'éditeur pour forcer.
 
 ![Capture Oklyn Card](docs/card.png)
 
