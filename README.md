@@ -22,7 +22,7 @@ Bilingual (English / French) — follows your Home Assistant language automatica
 - Water temperature with optional color coding (blue / green / orange by threshold)
 - Air temperature
 - Pump control: **AUTO / ON / OFF** buttons on a dedicated row, with real running status
-- Auxiliary 1 and 2 — each independently shown/hidden, type **switch** (toggleable) or **regulator** (read-only display)
+- Auxiliary 1 and 2 — each independently shown/hidden, type **switch** (toggleable) or **regulator** (read-only display), name taken directly from the entity (no device prefix)
 - pH calibration offset (positive or negative)
 - Last data update time (top right, optional)
 - Full visual editor — no YAML needed
@@ -98,10 +98,12 @@ show_last_updated: true
 | `salt_entity` | — | Salt sensor in g/L (`analysis_salt` only) |
 | `show_aux1` | `true` | Show the Auxiliary 1 row |
 | `aux1_entity` | — | Auxiliary 1 switch or binary_sensor |
+| `aux1_name` | — | Display name for Auxiliary 1. If omitted, uses the entity name from the HA registry (without device prefix). Falls back to "Auxiliary 1" / "Auxiliaire 1" |
 | `aux1_mode` | `switch` | `switch` = toggleable, `regulator` = read-only display |
 | `aux1_icon` | `mdi:lightbulb` | Icon for the Auxiliary 1 row |
 | `show_aux2` | `false` | Show the Auxiliary 2 row |
 | `aux2_entity` | — | Auxiliary 2 switch or binary_sensor |
+| `aux2_name` | — | Display name for Auxiliary 2. Same logic as `aux1_name` |
 | `aux2_mode` | `switch` | Same as `aux1_mode` |
 | `aux2_icon` | `mdi:power-socket-eu` | Icon for the Auxiliary 2 row |
 | `show_last_updated` | `true` | Show last data update time (top right) |
@@ -147,7 +149,7 @@ Bilingue (français / anglais) — suit automatiquement la langue de Home Assist
 - Température eau avec couleur optionnelle (bleu / vert / orange selon seuils réglables)
 - Température air
 - Contrôle pompe : boutons **AUTO / ON / OFF** sur une ligne dédiée, avec état réel de marche
-- Auxiliaires 1 et 2 — chacun affichable/masquable, type **interrupteur** (commandable) ou **régulateur** (lecture seule, ex : doseur chlore)
+- Auxiliaires 1 et 2 — chacun affichable/masquable, type **interrupteur** (commandable) ou **régulateur** (lecture seule, ex : doseur chlore), nom affiché tel que défini dans HA (sans le préfixe du device)
 - Correction de dérive pH (offset positif ou négatif)
 - Heure de dernière mise à jour (en haut à droite, optionnel)
 - Éditeur visuel complet — aucun YAML requis

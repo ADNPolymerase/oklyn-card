@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.3.0";
+const CARD_VERSION = "0.3.1";
 const OKL_MODELS = ["filtration", "analysis", "analysis_salt"];
 const OKL_METRICS = ["ph", "orp", "salt", "water", "air", "runtime"];
 
@@ -315,7 +315,7 @@ class OklynCard extends HTMLElement {
       const st = this._state(entity);
       section.hidden = !show || !entity;
       if (section.hidden) return;
-      this.querySelector(nameId).textContent = (st && st.attributes.friendly_name) || defName;
+      this.querySelector(nameId).textContent = (this._hass.entities?.[entity]?.name) || defName || (st && st.attributes.friendly_name);
       section.classList.toggle("okl-unavailable", !st || st.state === "unavailable");
       const isOn = !!st && st.state === "on";
       const sw = this.querySelector(switchId);
