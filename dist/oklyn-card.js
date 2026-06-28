@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.3.1";
+const CARD_VERSION = "0.3.2";
 const OKL_MODELS = ["filtration", "analysis", "analysis_salt"];
 const OKL_METRICS = ["ph", "orp", "salt", "water", "air", "runtime"];
 
@@ -14,7 +14,7 @@ const OKL_T = {
     phSensor: "pH sensor", phOffset: "pH correction (e.g. -0.99 or 0.5)", phColor: "Color pH (green zone)", phMin: "pH min (green zone)", phMax: "pH max (green zone)",
     redoxSensor: "RedOx sensor", redoxColor: "Color RedOx (green zone)", redoxMin: "RedOx min (mV)", redoxMax: "RedOx max (mV)",
     waterSensor: "Water temperature", waterColor: "Color water temperature", waterBlue: "Blue/green threshold (°C)", waterGreen: "Green/orange threshold (°C)",
-    airSensor: "Air temperature", pumpSensor: "Pump mode", showRuntime: "Show filtration time (24h)",
+    airSensor: "Air temperature", pumpSensor: "Pump mode", pumpRunningSensor: "Pump running sensor (binary_sensor)", showRuntime: "Show filtration time (24h)",
     saltSensor: "Salt sensor", saltColor: "Color salt (green zone)", saltMin: "Salt min g/L (green zone)", saltMax: "Salt max g/L (green zone)",
     showAux1: "Show auxiliary 1", showAux2: "Show auxiliary 2", auxType1: "Auxiliary 1 type", auxType2: "Auxiliary 2 type", auxIcon1: "Auxiliary 1 icon", auxIcon2: "Auxiliary 2 icon",
   },
@@ -29,7 +29,7 @@ const OKL_T = {
     phSensor: "Capteur pH", phOffset: "Correction pH (ex : -0.99 ou 0.5)", phColor: "Colorier le pH (zone verte)", phMin: "pH min (zone verte)", phMax: "pH max (zone verte)",
     redoxSensor: "Capteur RedOx", redoxColor: "Colorier le RedOx (zone verte)", redoxMin: "RedOx min (mV)", redoxMax: "RedOx max (mV)",
     waterSensor: "Température eau", waterColor: "Colorier la température eau", waterBlue: "Seuil bleu/vert (°C)", waterGreen: "Seuil vert/orange (°C)",
-    airSensor: "Température air", pumpSensor: "Mode pompe", showRuntime: "Afficher le temps de filtration (24h)",
+    airSensor: "Température air", pumpSensor: "Mode pompe", pumpRunningSensor: "Capteur pompe en marche (binary_sensor)", showRuntime: "Afficher le temps de filtration (24h)",
     saltSensor: "Capteur sel", saltColor: "Colorier le sel (zone verte)", saltMin: "Sel min g/L (zone verte)", saltMax: "Sel max g/L (zone verte)",
     showAux1: "Afficher l'auxiliaire 1", showAux2: "Afficher l'auxiliaire 2", auxType1: "Type auxiliaire 1", auxType2: "Type auxiliaire 2", auxIcon1: "Icône auxiliaire 1", auxIcon2: "Icône auxiliaire 2",
   },
@@ -62,6 +62,7 @@ class OklynCard extends HTMLElement {
       water_entity: find("sensor.oklyn_temperature_eau") || find("sensor.oklyn_water_temperature"),
       air_entity: find("sensor.oklyn_temperature_air") || find("sensor.oklyn_air_temperature"),
       pump_entity: find("select.oklyn_mode_pompe") || find("select.oklyn_pump_mode"),
+      pump_running_entity: find("binary_sensor.oklyn_pump_running") || find("binary_sensor.oklyn_pompe_en_marche"),
       aux1_entity: find("switch.oklyn_auxiliaire_1") || find("switch.oklyn_aux"),
       aux2_entity: find("switch.oklyn_auxiliaire_2"),
       salt_entity: salt,
@@ -257,7 +258,10 @@ class OklynCard extends HTMLElement {
     if (c.show_last_updated) {
       const times = [c.ph_entity, c.orp_entity, c.water_entity, c.air_entity]
         .map((e) => this._state(e)).filter(Boolean)
-        .map((st) => new Date(st.last_updated).getTime());
+        .map((st) => {
+          const measuredAt = st.attributes && st.attributes.measured_at;
+          return measuredAt ? new Date(measuredAt).getTime() : new Date(st.last_updated).getTime();
+        });
       updatedEl.textContent = times.length ? t.fmtAgo(Math.floor((Date.now() - Math.max(...times)) / 60000)) : "";
     } else updatedEl.textContent = "";
 
@@ -275,9 +279,10 @@ class OklynCard extends HTMLElement {
 
     const hasAnalysis = c.model !== "filtration";
     const hasSalt = c.model === "analysis_salt";
-    const phCls = c.ph_color ? (phDisplay && (parseFloat(phDisplay.state) < c.ph_min || parseFloat(phDisplay.state) > c.ph_max) ? "okl-warn" : "okl-ok") : "";
-    const orpCls = c.orp_color ? (orp && (parseFloat(orp.state) < c.orp_min || parseFloat(orp.state) > c.orp_max) ? "okl-warn" : "okl-ok") : "";
-    const saltCls = c.salt_color && salt ? (parseFloat(salt.state) < c.salt_min || parseFloat(salt.state) > c.salt_max ? "okl-warn" : "okl-ok") : "";
+    const _oklWarn = (st) => { const s = st && st.attributes && st.attributes.status; return s && s !== "normal"; };
+    const phCls = c.ph_color ? (phDisplay && (_oklWarn(ph) || parseFloat(phDisplay.state) < c.ph_min || parseFloat(phDisplay.state) > c.ph_max) ? "okl-warn" : "okl-ok") : "";
+    const orpCls = c.orp_color ? (orp && (_oklWarn(orp) || parseFloat(orp.state) < c.orp_min || parseFloat(orp.state) > c.orp_max) ? "okl-warn" : "okl-ok") : "";
+    const saltCls = c.salt_color && salt ? (_oklWarn(salt) || parseFloat(salt.state) < c.salt_min || parseFloat(salt.state) > c.salt_max ? "okl-warn" : "okl-ok") : "";
 
     const pumpForRt = this._state(c.pump_entity);
     const pumpStatusNow = pumpForRt ? pumpForRt.attributes.status : null;
@@ -303,8 +308,10 @@ class OklynCard extends HTMLElement {
     const pumpSection = this.querySelector("#okl-pump-section");
     pumpSection.classList.toggle("okl-unavailable", !pump);
     if (pump) {
-      const status = pump.attributes.status;
-      this.querySelector("#okl-pump-status").textContent = status ? (status === "on" ? t.running : t.stopped) : "";
+      const pumpRunning = c.pump_running_entity ? this._state(c.pump_running_entity) : null;
+      const isRunning = pumpRunning ? pumpRunning.state === "on" : (pump.attributes.status === "on");
+      const hasRunningInfo = pumpRunning ? true : !!pump.attributes.status;
+      this.querySelector("#okl-pump-status").textContent = hasRunningInfo ? (isRunning ? t.running : t.stopped) : "";
       this.querySelectorAll(".okl-btn").forEach((btn) => {
         btn.classList.toggle("okl-active", btn.dataset.mode === pump.state);
       });
@@ -419,6 +426,7 @@ class OklynCardEditor extends HTMLElement {
     schema.push(
       { name: "air_entity", label: t.airSensor, selector: { entity: { domain: "sensor" } } },
       { name: "pump_entity", label: t.pumpSensor, selector: { entity: { domain: "select" } } },
+      { name: "pump_running_entity", label: t.pumpRunningSensor, selector: { entity: { domain: "binary_sensor", device_class: "running" } } },
       { name: "show_pump_runtime", label: t.showRuntime, selector: { boolean: {} } },
     );
     if (hasSalt) {
