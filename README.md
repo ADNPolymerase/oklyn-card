@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ADNPolymerase/ha-oklyn/main/custom_components/oklyn/brand/logo.png" alt="Oklyn" height="80">
+</p>
+
 # Oklyn Card
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/ADNPolymerase/oklyn-card)
@@ -18,8 +22,9 @@ Bilingual (English / French) — follows your Home Assistant language automatica
 
 ## Features
 
-- pH and RedOx readings with green/orange color thresholds
-- Water temperature with optional color coding (blue / green / orange by threshold)
+- pH, RedOx and salt readings with **3-color threshold coding** (blue = below min, green = in range, orange = above max)
+- Alternative **Oklyn alert mode**: colors driven by the Oklyn API `status` attribute (`low` = blue, `normal` = green, `high` = orange) — selectable per-card via the visual editor
+- Water temperature with color coding (blue / green / orange by threshold)
 - Air temperature
 - Pump control: **AUTO / ON / OFF** buttons on a dedicated row, with real running status
 - Auxiliary 1 and 2 — each independently shown/hidden, type **switch** (toggleable) or **regulator** (read-only display), name taken directly from the entity (no device prefix)
@@ -78,6 +83,7 @@ orp_max: 800
 water_color: true
 water_temp_blue: 26
 water_temp_green: 30
+color_source: threshold  # or "oklyn" to use Oklyn API status attribute
 show_last_updated: true
 ```
 
@@ -108,15 +114,36 @@ show_last_updated: true
 | `aux2_icon` | `mdi:power-socket-eu` | Icon for the Auxiliary 2 row |
 | `show_last_updated` | `true` | Show last data update time (top right) |
 | `ph_offset` | `0` | pH calibration correction, positive or negative (e.g. `-0.99`) |
-| `ph_color` | `true` | Enable green/orange color coding for pH |
-| `ph_min` / `ph_max` | 6.8 / 7.6 | Green zone for pH |
-| `orp_color` | `true` | Enable green/orange color coding for RedOx |
-| `orp_min` / `orp_max` | 550 / 800 | Green zone for RedOx (mV) |
-| `salt_color` | `true` | Enable green/orange color coding for salt |
-| `salt_min` / `salt_max` | 3 / 5 | Green zone for salt (g/L) |
+| `ph_color` | `true` | Enable color coding for pH |
+| `ph_min` / `ph_max` | 6.8 / 7.6 | Green zone for pH — used in `threshold` mode |
+| `orp_color` | `true` | Enable color coding for RedOx |
+| `orp_min` / `orp_max` | 550 / 800 | Green zone for RedOx (mV) — used in `threshold` mode |
+| `color_source` | `threshold` | Color mode for pH, RedOx and salt: `threshold` (3 colors using the min/max values below) or `oklyn` (uses the `status` attribute from the Oklyn API — requires ha-oklyn ≥ v0.4.0) |
+| `salt_color` | `true` | Enable color coding for salt |
+| `salt_min` / `salt_max` | 3 / 5 | Green zone for salt (g/L) — used in `threshold` mode |
 | `water_color` | `true` | Enable color coding for water temperature |
 | `water_temp_blue` | `26` | Below this threshold → blue (cold) |
 | `water_temp_green` | `30` | Between blue and green threshold → green (ideal), above → orange (warm) |
+
+### Color mode (`color_source`)
+
+pH, RedOx and salt support two color modes, selectable in the visual editor:
+
+**`threshold` (default)** — 3 colors based on your configured min/max:
+
+| Range | Color | Meaning |
+|---|---|---|
+| < min | 🔵 Blue | Below target |
+| min – max | 🟢 Green | In range |
+| > max | 🟠 Orange | Above target |
+
+**`oklyn`** — colors driven by the `status` attribute returned by the Oklyn API (requires ha-oklyn ≥ v0.4.0):
+
+| Status | Color |
+|---|---|
+| `low` | 🔵 Blue |
+| `normal` | 🟢 Green |
+| `high` | 🟠 Orange |
 
 ### Water temperature color coding
 
@@ -145,7 +172,8 @@ Bilingue (français / anglais) — suit automatiquement la langue de Home Assist
 
 ## Fonctionnalités
 
-- pH et RedOx avec seuils colorés (vert/orange)
+- pH, RedOx et sel avec **coloration 3 couleurs** (bleu = sous le min, vert = dans la plage, orange = au-dessus du max)
+- Mode alternatif **alerte Oklyn** : couleurs pilotées par l'attribut `status` de l'API Oklyn (`low` = bleu, `normal` = vert, `high` = orange) — sélectionnable dans l'éditeur visuel
 - Température eau avec couleur optionnelle (bleu / vert / orange selon seuils réglables)
 - Température air
 - Contrôle pompe : boutons **AUTO / ON / OFF** sur une ligne dédiée, avec état réel de marche
