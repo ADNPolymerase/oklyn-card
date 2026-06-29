@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.3.2";
+const CARD_VERSION = "0.3.2-beta.2";
 const OKL_MODELS = ["filtration", "analysis", "analysis_salt"];
 const OKL_METRICS = ["ph", "orp", "salt", "water", "air", "runtime"];
 
@@ -11,11 +11,12 @@ const OKL_T = {
     model: "Oklyn model", mFiltration: "Filtration (temperature only)", mAnalysis: "Filtration + Analysis (pH, RedOx)", mSalt: "Filtration + Analysis + Salt",
     title: "Title", showUpdated: "Show last update", order: "Metrics order (drag to reorder)",
     swCtrl: "Switch (controllable)", regRO: "Regulator (read-only)",
-    phSensor: "pH sensor", phOffset: "pH correction (e.g. -0.99 or 0.5)", phColor: "Color pH (green zone)", phMin: "pH min (green zone)", phMax: "pH max (green zone)",
-    redoxSensor: "RedOx sensor", redoxColor: "Color RedOx (green zone)", redoxMin: "RedOx min (mV)", redoxMax: "RedOx max (mV)",
+    phSensor: "pH sensor", phOffset: "pH correction (e.g. -0.99 or 0.5)", phColor: "Color pH", phMin: "pH min (green zone)", phMax: "pH max (green zone)",
+    redoxSensor: "RedOx sensor", redoxColor: "Color RedOx", redoxMin: "RedOx min (mV)", redoxMax: "RedOx max (mV)",
     waterSensor: "Water temperature", waterColor: "Color water temperature", waterBlue: "Blue/green threshold (°C)", waterGreen: "Green/orange threshold (°C)",
     airSensor: "Air temperature", pumpSensor: "Pump mode", pumpRunningSensor: "Pump running sensor (binary_sensor)", showRuntime: "Show filtration time (24h)",
-    saltSensor: "Salt sensor", saltColor: "Color salt (green zone)", saltMin: "Salt min g/L (green zone)", saltMax: "Salt max g/L (green zone)",
+    saltSensor: "Salt sensor", saltColor: "Color salt", saltMin: "Salt min g/L (green zone)", saltMax: "Salt max g/L (green zone)",
+    colorSource: "Color mode", colorThreshold: "Custom thresholds (↓ blue · ✓ green · ↑ orange)", colorOklyn: "Oklyn alert status (low=blue · normal=green · high=orange)",
     showAux1: "Show auxiliary 1", showAux2: "Show auxiliary 2", auxType1: "Auxiliary 1 type", auxType2: "Auxiliary 2 type", auxIcon1: "Auxiliary 1 icon", auxIcon2: "Auxiliary 2 icon",
   },
   fr: {
@@ -26,11 +27,12 @@ const OKL_T = {
     model: "Modèle Oklyn", mFiltration: "Filtration (température seule)", mAnalysis: "Filtration + Analyse (pH, RedOx)", mSalt: "Filtration + Analyse + Sel",
     title: "Titre", showUpdated: "Afficher la dernière mise à jour", order: "Ordre des mesures (glisser pour réorganiser)",
     swCtrl: "Interrupteur (commandable)", regRO: "Régulateur (lecture seule)",
-    phSensor: "Capteur pH", phOffset: "Correction pH (ex : -0.99 ou 0.5)", phColor: "Colorier le pH (zone verte)", phMin: "pH min (zone verte)", phMax: "pH max (zone verte)",
-    redoxSensor: "Capteur RedOx", redoxColor: "Colorier le RedOx (zone verte)", redoxMin: "RedOx min (mV)", redoxMax: "RedOx max (mV)",
+    phSensor: "Capteur pH", phOffset: "Correction pH (ex : -0.99 ou 0.5)", phColor: "Colorier le pH", phMin: "pH min (zone verte)", phMax: "pH max (zone verte)",
+    redoxSensor: "Capteur RedOx", redoxColor: "Colorier le RedOx", redoxMin: "RedOx min (mV)", redoxMax: "RedOx max (mV)",
     waterSensor: "Température eau", waterColor: "Colorier la température eau", waterBlue: "Seuil bleu/vert (°C)", waterGreen: "Seuil vert/orange (°C)",
     airSensor: "Température air", pumpSensor: "Mode pompe", pumpRunningSensor: "Capteur pompe en marche (binary_sensor)", showRuntime: "Afficher le temps de filtration (24h)",
-    saltSensor: "Capteur sel", saltColor: "Colorier le sel (zone verte)", saltMin: "Sel min g/L (zone verte)", saltMax: "Sel max g/L (zone verte)",
+    saltSensor: "Capteur sel", saltColor: "Colorier le sel", saltMin: "Sel min g/L (zone verte)", saltMax: "Sel max g/L (zone verte)",
+    colorSource: "Mode de coloration", colorThreshold: "Seuils personnalisés (↓ bleu · ✓ vert · ↑ orange)", colorOklyn: "Statut alerte Oklyn (low=bleu · normal=vert · high=orange)",
     showAux1: "Afficher l'auxiliaire 1", showAux2: "Afficher l'auxiliaire 2", auxType1: "Type auxiliaire 1", auxType2: "Type auxiliaire 2", auxIcon1: "Icône auxiliaire 1", auxIcon2: "Icône auxiliaire 2",
   },
 };
@@ -78,6 +80,7 @@ class OklynCard extends HTMLElement {
       orp_color: true, orp_min: 550, orp_max: 800,
       water_color: true, water_temp_blue: 26, water_temp_green: 30,
       salt_color: true, salt_min: 3, salt_max: 5,
+      color_source: "threshold",
     };
   }
 
@@ -90,6 +93,7 @@ class OklynCard extends HTMLElement {
       orp_color: true, orp_min: 550, orp_max: 800,
       water_color: true, water_temp_blue: 26, water_temp_green: 30,
       salt_color: true, salt_min: 3, salt_max: 5,
+      color_source: "threshold",
       metrics_order: OKL_METRICS.slice(),
       ...config,
     };
@@ -284,10 +288,20 @@ class OklynCard extends HTMLElement {
 
     const hasAnalysis = c.model !== "filtration";
     const hasSalt = c.model === "analysis_salt";
-    const _oklWarn = (st) => { const s = st && st.attributes && st.attributes.status; return s && s !== "normal"; };
-    const phCls = c.ph_color ? (phDisplay && (_oklWarn(ph) || parseFloat(phDisplay.state) < c.ph_min || parseFloat(phDisplay.state) > c.ph_max) ? "okl-warn" : "okl-ok") : "";
-    const orpCls = c.orp_color ? (orp && (_oklWarn(orp) || parseFloat(orp.state) < c.orp_min || parseFloat(orp.state) > c.orp_max) ? "okl-warn" : "okl-ok") : "";
-    const saltCls = c.salt_color && salt ? (_oklWarn(salt) || parseFloat(salt.state) < c.salt_min || parseFloat(salt.state) > c.salt_max ? "okl-warn" : "okl-ok") : "";
+    const _colorCls = (st, val, min, max) => {
+      if (c.color_source === "oklyn") {
+        const s = st && st.attributes && st.attributes.status;
+        if (s === "low") return "okl-blue";
+        if (s === "normal") return "okl-ok";
+        if (s === "high") return "okl-warn";
+      }
+      if (val < min) return "okl-blue";
+      if (val > max) return "okl-warn";
+      return "okl-ok";
+    };
+    const phCls = c.ph_color && phDisplay ? _colorCls(ph, parseFloat(phDisplay.state), c.ph_min, c.ph_max) : "";
+    const orpCls = c.orp_color && orp ? _colorCls(orp, parseFloat(orp.state), c.orp_min, c.orp_max) : "";
+    const saltCls = c.salt_color && salt ? _colorCls(salt, parseFloat(salt.state), c.salt_min, c.salt_max) : "";
 
     const pumpForRt = this._state(c.pump_entity);
     const pumpStatusNow = pumpForRt ? pumpForRt.attributes.status : null;
@@ -400,6 +414,7 @@ class OklynCardEditor extends HTMLElement {
       { name: "language", label: t.langlabel, selector: { select: { mode: "dropdown", options: [{ value: "", label: "Auto" }, { value: "en", label: "English" }, { value: "fr", label: "Français" }] } } },
       { name: "show_last_updated", label: t.showUpdated, selector: { boolean: {} } },
       { name: "metrics_order", label: t.order, selector: { select: { multiple: true, reorder: true, options: _metric_opts } } },
+      { name: "color_source", label: t.colorSource, selector: { select: { mode: "dropdown", options: [{ value: "threshold", label: t.colorThreshold }, { value: "oklyn", label: t.colorOklyn }] } } },
     ];
     if (hasAnalysis) {
       schema.push(
@@ -431,7 +446,6 @@ class OklynCardEditor extends HTMLElement {
     schema.push(
       { name: "air_entity", label: t.airSensor, selector: { entity: { domain: "sensor" } } },
       { name: "pump_entity", label: t.pumpSensor, selector: { entity: { domain: "select" } } },
-      { name: "pump_running_entity", label: t.pumpRunningSensor, selector: { entity: { domain: "binary_sensor", device_class: "running" } } },
       { name: "show_pump_runtime", label: t.showRuntime, selector: { boolean: {} } },
     );
     if (hasSalt) {
