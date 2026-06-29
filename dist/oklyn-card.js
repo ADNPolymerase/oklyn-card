@@ -52,6 +52,11 @@ class OklynCard extends HTMLElement {
 
   static getStubConfig(hass) {
     const find = (p) => Object.keys(hass.states).find((e) => e.startsWith(p)) || "";
+    const findOklynRunning = () => Object.keys(hass.states).find(
+      (e) => e.startsWith("binary_sensor.") &&
+        e.includes("oklyn") &&
+        hass.states[e].attributes.device_class === "running"
+    ) || "";
     const ph = find("sensor.oklyn_ph");
     const salt = find("sensor.oklyn_salt") || find("sensor.oklyn_sel");
     return {
@@ -62,7 +67,7 @@ class OklynCard extends HTMLElement {
       water_entity: find("sensor.oklyn_temperature_eau") || find("sensor.oklyn_water_temperature"),
       air_entity: find("sensor.oklyn_temperature_air") || find("sensor.oklyn_air_temperature"),
       pump_entity: find("select.oklyn_mode_pompe") || find("select.oklyn_pump_mode"),
-      pump_running_entity: find("binary_sensor.oklyn_pump_running") || find("binary_sensor.oklyn_pompe_en_marche"),
+      pump_running_entity: findOklynRunning(),
       aux1_entity: find("switch.oklyn_auxiliaire_1") || find("switch.oklyn_aux"),
       aux2_entity: find("switch.oklyn_auxiliaire_2"),
       salt_entity: salt,
