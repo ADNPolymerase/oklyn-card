@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.4.0";
+const CARD_VERSION = "0.5.0";
 const OKL_MODELS = ["filtration", "analysis", "analysis_salt"];
 const OKL_METRICS = ["ph", "orp", "salt", "water", "air", "runtime"];
 
