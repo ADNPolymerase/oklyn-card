@@ -17,7 +17,7 @@
 Custom Lovelace card for the [Oklyn pool controller integration](https://github.com/ADNPolymerase/ha-oklyn).
 Bilingual (English / French) — follows your Home Assistant language automatically, English by default.
 
-> 🇫🇷 Carte Lovelace pour l'intégration Oklyn — voir la section française plus bas.
+> 🇫🇷 [Lire en français](README.fr.md)
 
 ![Oklyn Card screenshot](docs/card.png)
 
@@ -162,43 +162,6 @@ If your Oklyn pH probe drifts (e.g. reads 8.38 when a manual test says 7.39), se
 `ph_offset` to `-0.99`. The card displays the corrected value with the label "pH corrigé",
 and the thresholds apply to the corrected value. Leave at `0` for raw reading.
 
----
-
-# 🇫🇷 Oklyn Card
-
-[![Mes autres projets](https://img.shields.io/badge/Mes%20autres%20projets-adnpolymerase.github.io-8a2be2.svg)](https://adnpolymerase.github.io/HA/)
-
-Carte Lovelace pour l'[intégration Oklyn](https://github.com/ADNPolymerase/ha-oklyn).
-Bilingue (français / anglais) — suit automatiquement la langue de Home Assistant, anglais par défaut. Option `language` (`en`/`fr`) ou choix dans l'éditeur pour forcer.
-
-![Capture Oklyn Card](docs/card.png)
-
-## Fonctionnalités
-
-- pH, RedOx et sel avec **coloration 3 couleurs** (bleu = sous le min, vert = dans la plage, orange = au-dessus du max)
-- Mode alternatif **alerte Oklyn** : couleurs pilotées par l'attribut `status` de l'API Oklyn (`low` = bleu, `normal` = vert, `high` = orange) — sélectionnable dans l'éditeur visuel
-- Température eau avec couleur optionnelle (bleu / vert / orange selon seuils réglables)
-- Température air
-- Contrôle pompe : boutons **AUTO / ON / OFF** sur une ligne dédiée, avec état réel de marche
-- Auxiliaires 1 et 2 — chacun affichable/masquable, type **interrupteur** (commandable) ou **régulateur** (lecture seule, ex : doseur chlore), nom affiché tel que défini dans HA (sans le préfixe du device)
-- Correction de dérive pH (offset positif ou négatif)
-- Heure de dernière mise à jour (en haut à droite, optionnel)
-- Éditeur visuel complet — aucun YAML requis
-- **Aucune dépendance** : JavaScript pur, pas besoin de Bubble Card ni d'aucun autre plugin
-
-> Nécessite l'[intégration Oklyn](https://github.com/ADNPolymerase/ha-oklyn) :
-> [![Ouvrir dans HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ADNPolymerase&repository=ha-oklyn&category=integration)
-
-## Installation (HACS)
-
-1. **HACS → ⋮ → Dépôts personnalisés**
-2. Ajouter `https://github.com/ADNPolymerase/oklyn-card` en catégorie **Dashboard**
-3. Rechercher **Oklyn Card** et télécharger
-4. Recharger le navigateur
-
-Les entités sont détectées automatiquement. L'auxiliaire 1 est affiché par défaut ;
-l'auxiliaire 2 se coche dans l'éditeur visuel.
-
-## Licence
+## License
 
 MIT
