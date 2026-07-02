@@ -19,7 +19,7 @@ Bilingual (English / French) — follows your Home Assistant language automatica
 
 > 🇫🇷 [Lire en français](README.fr.md)
 
-![Oklyn Card screenshot](docs/card.png)
+![Oklyn Card screenshot](https://raw.githubusercontent.com/ADNPolymerase/oklyn-card/main/docs/card.png)
 
 ## Features
 

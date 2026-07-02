@@ -19,7 +19,7 @@ Bilingue (français / anglais) — suit automatiquement la langue de Home Assist
 
 > 🇬🇧 [Read in English](README.md)
 
-![Capture Oklyn Card](docs/card.png)
+![Capture Oklyn Card](https://raw.githubusercontent.com/ADNPolymerase/oklyn-card/main/docs/card.png)
 
 ## Fonctionnalités
 
