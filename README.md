@@ -15,7 +15,7 @@
 <a href="https://adnpolymerase.github.io/HA/" target="_blank"><img src="https://raw.githubusercontent.com/ADNPolymerase/HA/main/assets/site-button.svg" alt="Link to my github.io for my other projects" height="60"></a>
 
 Custom Lovelace card for the [Oklyn pool controller integration](https://github.com/ADNPolymerase/ha-oklyn).
-Multilingual (English / French / Russian) — follows your Home Assistant language automatically, English by default.
+Multilingual (11 languages: EN, FR, DE, ES, IT, NL, SV, NO, DA, PL, RU) — follows your Home Assistant language automatically, English by default.
 
 > 🇫🇷 [Lire en français](README.fr.md)
 
@@ -83,7 +83,7 @@ show_last_updated: true
 |---|---|---|
 | `model` | `analysis` | Oklyn model: `filtration` (temperatures only), `analysis` (+ pH, RedOx), `analysis_salt` (+ salt). Hides irrelevant metrics and editor options |
 | `title` | _auto_ | Card title (defaults to a localized "Pool" / "Piscine") |
-| `language` | _auto_ | UI language: `en`, `fr`, or `ru`. Auto-detected from Home Assistant (English fallback). Also selectable in the editor |
+| `language` | _auto_ | UI language: `en`, `fr`, `de`, `es`, `it`, `nl`, `sv`, `no`, `da`, `pl`, `ru`. Auto-detected from Home Assistant (English fallback). Also selectable in the editor |
 | `metrics_order` | `[ph, orp, salt, water, air, runtime]` | Display order of the metric tiles — drag to reorder in the editor |
 | `ph_entity` | — | pH sensor (`analysis` / `analysis_salt`) |
 | `orp_entity` | — | RedOx/ORP sensor (`analysis` / `analysis_salt`) |

@@ -15,7 +15,7 @@
 <a href="https://adnpolymerase.github.io/HA/" target="_blank"><img src="https://raw.githubusercontent.com/ADNPolymerase/HA/main/assets/site-button.svg" alt="Link to my github.io for my other projects" height="60"></a>
 
 Carte Lovelace pour l'[intégration Oklyn](https://github.com/ADNPolymerase/ha-oklyn).
-Multilingue (français / anglais / russe) — suit automatiquement la langue de Home Assistant, anglais par défaut. Option `language` (`en`/`fr`/`ru`) ou choix dans l'éditeur pour forcer.
+Multilingue (11 langues : FR, EN, DE, ES, IT, NL, SV, NO, DA, PL, RU) — suit automatiquement la langue de Home Assistant, anglais par défaut. Option `language` ou choix dans l'éditeur pour forcer.
 
 > 🇬🇧 [Read in English](README.md)
 
@@ -83,7 +83,7 @@ show_last_updated: true
 |---|---|---|
 | `model` | `analysis` | Modèle Oklyn : `filtration` (températures uniquement), `analysis` (+ pH, RedOx), `analysis_salt` (+ sel). Masque les métriques et options non pertinentes |
 | `title` | _auto_ | Titre de la carte (par défaut "Pool" / "Piscine" localisé) |
-| `language` | _auto_ | Langue de l'interface : `en`, `fr` ou `ru`. Détectée automatiquement depuis Home Assistant (repli anglais). Sélectionnable aussi dans l'éditeur |
+| `language` | _auto_ | Langue de l'interface : `en`, `fr`, `de`, `es`, `it`, `nl`, `sv`, `no`, `da`, `pl`, `ru`. Détectée automatiquement depuis Home Assistant (repli anglais). Sélectionnable aussi dans l'éditeur |
 | `metrics_order` | `[ph, orp, salt, water, air, runtime]` | Ordre d'affichage des tuiles de métriques — glisser-déposer dans l'éditeur |
 | `ph_entity` | — | Capteur pH (`analysis` / `analysis_salt`) |
 | `orp_entity` | — | Capteur RedOx/ORP (`analysis` / `analysis_salt`) |
