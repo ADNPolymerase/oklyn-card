@@ -23,16 +23,10 @@ Multilingual (English / French / Russian) — follows your Home Assistant langua
 
 ## Features
 
-- pH, RedOx and salt readings with **3-color threshold coding** (blue = below min, green = in range, orange = above max)
-- Alternative **Oklyn alert mode**: colors driven by the Oklyn API `status` attribute (`low` = blue, `normal` = green, `high` = orange) — selectable per-card via the visual editor
-- Water temperature with color coding (blue / green / orange by threshold)
-- Air temperature
-- Pump control: **AUTO / ON / OFF** buttons on a dedicated row, with real running status
-- Auxiliary 1 and 2 — each independently shown/hidden, type **switch** (toggleable) or **regulator** (read-only display), name taken directly from the entity (no device prefix)
-- pH calibration offset (positive or negative)
-- Last data update time (top right, optional)
-- Full visual editor — no YAML needed
-- **No dependency**: plain JavaScript, no Bubble Card or any other frontend plugin required
+- **pH, RedOx, salt** and **water temperature** with 3-color coding (blue = below, green = in range, orange = above), by thresholds or driven by the Oklyn API `status` attribute (`color_source: oklyn`).
+- **Pump control** — AUTO / ON / OFF buttons with real running status — and air temperature.
+- **Auxiliary 1 and 2** — independently shown/hidden, **switch** (toggleable) or **regulator** (read-only), name taken from the entity.
+- **pH calibration offset**, optional last-update time, full **visual editor**, zero dependencies.
 
 > Requires the [Oklyn integration](https://github.com/ADNPolymerase/ha-oklyn) to provide the entities:
 > [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ADNPolymerase&repository=ha-oklyn&category=integration)
@@ -44,12 +38,7 @@ Multilingual (English / French / Russian) — follows your Home Assistant langua
 3. Search for **Oklyn Card** and download it
 4. Reload your browser (the resource is registered automatically)
 
-## Manual installation
-
-1. Copy `dist/oklyn-card.js` to `config/www/oklyn-card.js`
-2. **Settings → Dashboards → ⋮ → Resources → Add resource**
-   - URL: `/local/oklyn-card.js`
-   - Type: JavaScript module
+Manual alternative: copy `dist/oklyn-card.js` to `config/www/`, then add `/local/oklyn-card.js` as a JavaScript-module resource.
 
 ## Usage
 
@@ -101,11 +90,11 @@ show_last_updated: true
 | `water_entity` | — | Water temperature sensor |
 | `air_entity` | — | Air temperature sensor |
 | `pump_entity` | — | Pump mode select entity |
-| `show_pump_runtime` | `false` | Show cumulative pump runtime over the last 24h as a metric tile (computed from the pump status history, refreshed every 5 min) |
+| `show_pump_runtime` | `false` | 24h cumulative pump runtime tile (from the pump status history) |
 | `salt_entity` | — | Salt sensor in g/L (`analysis_salt` only) |
 | `show_aux1` | `true` | Show the Auxiliary 1 row |
 | `aux1_entity` | — | Auxiliary 1 switch or binary_sensor |
-| `aux1_name` | — | Display name for Auxiliary 1. If omitted, uses the entity name from the HA registry (without device prefix). Falls back to "Auxiliary 1" / "Auxiliaire 1" |
+| `aux1_name` | — | Display name for Auxiliary 1. Defaults to the entity name (without device prefix) |
 | `aux1_mode` | `switch` | `switch` = toggleable, `regulator` = read-only display |
 | `aux1_icon` | `mdi:lightbulb` | Icon for the Auxiliary 1 row |
 | `show_aux2` | `false` | Show the Auxiliary 2 row |
@@ -119,48 +108,20 @@ show_last_updated: true
 | `ph_min` / `ph_max` | 6.8 / 7.6 | Green zone for pH — used in `threshold` mode |
 | `orp_color` | `true` | Enable color coding for RedOx |
 | `orp_min` / `orp_max` | 550 / 800 | Green zone for RedOx (mV) — used in `threshold` mode |
-| `color_source` | `threshold` | Color mode for pH, RedOx and salt: `threshold` (3 colors using the min/max values below) or `oklyn` (uses the `status` attribute from the Oklyn API — requires ha-oklyn ≥ v0.4.0) |
+| `color_source` | `threshold` | `threshold` (min/max below) or `oklyn` (Oklyn API `status` attribute) |
 | `salt_color` | `true` | Enable color coding for salt |
 | `salt_min` / `salt_max` | 3 / 5 | Green zone for salt (g/L) — used in `threshold` mode |
 | `water_color` | `true` | Enable color coding for water temperature |
 | `water_temp_blue` | `26` | Below this threshold → blue (cold) |
 | `water_temp_green` | `30` | Between blue and green threshold → green (ideal), above → orange (warm) |
 
-### Color mode (`color_source`)
+### Color modes
 
-pH, RedOx and salt support two color modes, selectable in the visual editor:
-
-**`threshold` (default)** — 3 colors based on your configured min/max:
-
-| Range | Color | Meaning |
-|---|---|---|
-| < min | 🔵 Blue | Below target |
-| min – max | 🟢 Green | In range |
-| > max | 🟠 Orange | Above target |
-
-**`oklyn`** — colors driven by the `status` attribute returned by the Oklyn API (requires ha-oklyn ≥ v0.4.0):
-
-| Status | Color |
-|---|---|
-| `low` | 🔵 Blue |
-| `normal` | 🟢 Green |
-| `high` | 🟠 Orange |
-
-### Water temperature color coding
-
-| Range | Color | Meaning |
-|---|---|---|
-| ≤ `water_temp_blue` | 🔵 Blue | Cold |
-| `water_temp_blue` – `water_temp_green` | 🟢 Green | Ideal |
-| > `water_temp_green` | 🟠 Orange | Warm |
-
-Disable with `water_color: false` to always show in the default text color.
+`color_source: threshold` (default) colors pH/RedOx/salt from your min/max (🔵 below, 🟢 in range, 🟠 above). `color_source: oklyn` uses the `status` attribute from the Oklyn API instead (`low`/`normal`/`high`, requires ha-oklyn ≥ v0.4.0). Water temperature follows `water_temp_blue` / `water_temp_green` the same way.
 
 ### pH calibration offset
 
-If your Oklyn pH probe drifts (e.g. reads 8.38 when a manual test says 7.39), set
-`ph_offset` to `-0.99`. The card displays the corrected value with the label "pH corrigé",
-and the thresholds apply to the corrected value. Leave at `0` for raw reading.
+If your pH probe drifts (e.g. reads 8.38 when a manual test says 7.39), set `ph_offset: -0.99` — the card shows the corrected value ("pH corrigé") and the thresholds apply to it.
 
 ## License
 

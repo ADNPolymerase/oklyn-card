@@ -23,16 +23,10 @@ Multilingue (français / anglais / russe) — suit automatiquement la langue de 
 
 ## Fonctionnalités
 
-- pH, RedOx et sel avec **coloration 3 couleurs** (bleu = sous le min, vert = dans la plage, orange = au-dessus du max)
-- Mode alternatif **alerte Oklyn** : couleurs pilotées par l'attribut `status` de l'API Oklyn (`low` = bleu, `normal` = vert, `high` = orange) — sélectionnable dans l'éditeur visuel
-- Température eau avec couleur optionnelle (bleu / vert / orange selon seuils réglables)
-- Température air
-- Contrôle pompe : boutons **AUTO / ON / OFF** sur une ligne dédiée, avec état réel de marche
-- Auxiliaires 1 et 2 — chacun affichable/masquable, type **interrupteur** (commandable) ou **régulateur** (lecture seule, ex : doseur chlore), nom affiché tel que défini dans HA (sans le préfixe du device)
-- Correction de dérive pH (offset positif ou négatif)
-- Heure de dernière mise à jour (en haut à droite, optionnel)
-- Éditeur visuel complet — aucun YAML requis
-- **Aucune dépendance** : JavaScript pur, pas besoin de Bubble Card ni d'aucun autre plugin
+- **pH, RedOx, sel** et **température eau** en 3 couleurs (bleu = sous, vert = dans la plage, orange = au-dessus), par seuils ou pilotées par l'attribut `status` de l'API Oklyn (`color_source: oklyn`).
+- **Contrôle pompe** — boutons AUTO / ON / OFF avec état réel de marche — et température air.
+- **Auxiliaires 1 et 2** — affichables/masquables, **interrupteur** (commandable) ou **régulateur** (lecture seule), nom repris de l'entité.
+- **Correction de dérive pH**, heure de dernière mise à jour optionnelle, **éditeur visuel** complet, zéro dépendance.
 
 > Nécessite l'[intégration Oklyn](https://github.com/ADNPolymerase/ha-oklyn) :
 > [![Ouvrir dans HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ADNPolymerase&repository=ha-oklyn&category=integration)
@@ -44,12 +38,7 @@ Multilingue (français / anglais / russe) — suit automatiquement la langue de 
 3. Rechercher **Oklyn Card** et télécharger
 4. Recharger le navigateur (la ressource s'enregistre automatiquement)
 
-## Installation manuelle
-
-1. Copier `dist/oklyn-card.js` vers `config/www/oklyn-card.js`
-2. **Paramètres → Tableaux de bord → ⋮ → Ressources → Ajouter une ressource**
-   - URL : `/local/oklyn-card.js`
-   - Type : Module JavaScript
+Alternative manuelle : copiez `dist/oklyn-card.js` vers `config/www/`, puis ajoutez `/local/oklyn-card.js` comme ressource module JavaScript.
 
 ## Utilisation
 
@@ -101,11 +90,11 @@ show_last_updated: true
 | `water_entity` | — | Capteur température eau |
 | `air_entity` | — | Capteur température air |
 | `pump_entity` | — | Entité select du mode pompe |
-| `show_pump_runtime` | `false` | Afficher le temps de marche cumulé de la pompe sur les dernières 24h en tuile de métrique (calculé depuis l'historique de statut, rafraîchi toutes les 5 min) |
+| `show_pump_runtime` | `false` | Tuile temps de marche pompe cumulé sur 24h (depuis l'historique de statut) |
 | `salt_entity` | — | Capteur sel en g/L (`analysis_salt` uniquement) |
 | `show_aux1` | `true` | Afficher la ligne Auxiliaire 1 |
 | `aux1_entity` | — | Switch ou binary_sensor de l'Auxiliaire 1 |
-| `aux1_name` | — | Nom affiché pour l'Auxiliaire 1. Si omis, utilise le nom de l'entité dans le registre HA (sans préfixe du device). Repli sur "Auxiliary 1" / "Auxiliaire 1" |
+| `aux1_name` | — | Nom affiché pour l'Auxiliaire 1. Défaut : nom de l'entité (sans préfixe du device) |
 | `aux1_mode` | `switch` | `switch` = commandable, `regulator` = affichage lecture seule |
 | `aux1_icon` | `mdi:lightbulb` | Icône de la ligne Auxiliaire 1 |
 | `show_aux2` | `false` | Afficher la ligne Auxiliaire 2 |
@@ -119,48 +108,20 @@ show_last_updated: true
 | `ph_min` / `ph_max` | 6.8 / 7.6 | Zone verte pour le pH — utilisée en mode `threshold` |
 | `orp_color` | `true` | Activer la coloration pour le RedOx |
 | `orp_min` / `orp_max` | 550 / 800 | Zone verte pour le RedOx (mV) — utilisée en mode `threshold` |
-| `color_source` | `threshold` | Mode de coloration pour pH, RedOx et sel : `threshold` (3 couleurs selon les min/max ci-dessous) ou `oklyn` (utilise l'attribut `status` de l'API Oklyn — nécessite ha-oklyn ≥ v0.4.0) |
+| `color_source` | `threshold` | `threshold` (min/max ci-dessous) ou `oklyn` (attribut `status` de l'API Oklyn) |
 | `salt_color` | `true` | Activer la coloration pour le sel |
 | `salt_min` / `salt_max` | 3 / 5 | Zone verte pour le sel (g/L) — utilisée en mode `threshold` |
 | `water_color` | `true` | Activer la coloration pour la température eau |
 | `water_temp_blue` | `26` | En dessous de ce seuil → bleu (froid) |
 | `water_temp_green` | `30` | Entre le seuil bleu et vert → vert (idéal), au-dessus → orange (chaud) |
 
-### Mode de coloration (`color_source`)
+### Modes de coloration
 
-pH, RedOx et sel supportent deux modes de coloration, sélectionnables dans l'éditeur visuel :
-
-**`threshold` (par défaut)** — 3 couleurs basées sur vos min/max configurés :
-
-| Plage | Couleur | Signification |
-|---|---|---|
-| < min | 🔵 Bleu | Sous la cible |
-| min – max | 🟢 Vert | Dans la plage |
-| > max | 🟠 Orange | Au-dessus de la cible |
-
-**`oklyn`** — couleurs pilotées par l'attribut `status` retourné par l'API Oklyn (nécessite ha-oklyn ≥ v0.4.0) :
-
-| Statut | Couleur |
-|---|---|
-| `low` | 🔵 Bleu |
-| `normal` | 🟢 Vert |
-| `high` | 🟠 Orange |
-
-### Coloration de la température eau
-
-| Plage | Couleur | Signification |
-|---|---|---|
-| ≤ `water_temp_blue` | 🔵 Bleu | Froid |
-| `water_temp_blue` – `water_temp_green` | 🟢 Vert | Idéal |
-| > `water_temp_green` | 🟠 Orange | Chaud |
-
-Désactiver avec `water_color: false` pour toujours afficher dans la couleur de texte par défaut.
+`color_source: threshold` (défaut) colore pH/RedOx/sel selon vos min/max (🔵 sous, 🟢 dans la plage, 🟠 au-dessus). `color_source: oklyn` utilise l'attribut `status` de l'API Oklyn (`low`/`normal`/`high`, nécessite ha-oklyn ≥ v0.4.0). La température eau suit `water_temp_blue` / `water_temp_green` sur le même principe.
 
 ### Correction de dérive pH
 
-Si votre sonde pH Oklyn dérive (ex : affiche 8.38 alors qu'un test manuel indique 7.39), réglez
-`ph_offset` à `-0.99`. La carte affiche la valeur corrigée avec le libellé "pH corrigé",
-et les seuils s'appliquent à la valeur corrigée. Laisser à `0` pour la valeur brute.
+Si votre sonde pH dérive (ex : 8.38 affiché alors qu'un test manuel donne 7.39), réglez `ph_offset: -0.99` — la carte affiche la valeur corrigée (« pH corrigé ») et les seuils s'y appliquent.
 
 ## Licence
 
