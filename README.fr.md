@@ -19,7 +19,7 @@ Multilingue (11 langues : FR, EN, DE, ES, IT, NL, SV, NO, DA, PL, RU) — suit a
 
 > 🇬🇧 [Read in English](README.md)
 
-![Capture Oklyn Card](https://raw.githubusercontent.com/ADNPolymerase/oklyn-card/main/docs/card.png)
+![Capture Oklyn Card](https://raw.githubusercontent.com/ADNPolymerase/oklyn-card/main/docs/card.fr.png)
 
 ## Fonctionnalités
 
