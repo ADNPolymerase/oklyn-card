@@ -38,6 +38,8 @@ Available directly in HACS — no custom repository needed.
 1. Open **HACS**, search for **Oklyn Card** and download it
 2. Reload your browser (the resource is registered automatically)
 
+As a custom repository: **HACS → ⋮ → Custom repositories** → add `https://github.com/ADNPolymerase/oklyn-card` with category **Dashboard**.
+
 Manual alternative: copy `dist/oklyn-card.js` to `config/www/`, then add `/local/oklyn-card.js` as a JavaScript-module resource.
 
 ## Usage
