@@ -4,7 +4,7 @@
 
 # Oklyn Card
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/ADNPolymerase/oklyn-card)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-blue.svg)](https://github.com/hacs/default)
 [![GitHub Release](https://badgen.net/github/release/ADNPolymerase/oklyn-card)](https://github.com/ADNPolymerase/oklyn-card/releases)
 [![HACS Action](https://github.com/ADNPolymerase/oklyn-card/actions/workflows/hacs.yml/badge.svg)](https://github.com/ADNPolymerase/oklyn-card/actions/workflows/hacs.yml)
 [![HA Version](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io/)
@@ -33,10 +33,10 @@ Multilingue (11 langues : FR, EN, DE, ES, IT, NL, SV, NO, DA, PL, RU) — suit a
 
 ## Installation (HACS)
 
-1. **HACS → ⋮ → Dépôts personnalisés**
-2. Ajouter `https://github.com/ADNPolymerase/oklyn-card` en catégorie **Dashboard**
-3. Rechercher **Oklyn Card** et télécharger
-4. Recharger le navigateur (la ressource s'enregistre automatiquement)
+Disponible directement dans HACS — aucun dépôt personnalisé à ajouter.
+
+1. Ouvrez **HACS**, recherchez **Oklyn Card** et téléchargez-la
+2. Rechargez le navigateur (la ressource s'enregistre automatiquement)
 
 Alternative manuelle : copiez `dist/oklyn-card.js` vers `config/www/`, puis ajoutez `/local/oklyn-card.js` comme ressource module JavaScript.
 
