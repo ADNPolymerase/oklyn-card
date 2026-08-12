@@ -673,8 +673,13 @@ class OklynCard extends HTMLElement {
   }
 
   _metricHtml(label, st, unit, cls) {
-    const val = st ? parseFloat(st.state).toLocaleString() : "—";
-    return "<div class=\"okl-metric" + (st ? "" : " okl-unavailable") + "\"><div class=\"okl-value " + cls + "\">" + val + "<span style=\"font-size:0.6em\"> " + unit + "</span></div><div class=\"okl-label\">" + label + "</div></div>";
+    // A dropped probe can leave the entity in place with a non-numeric state
+    // ("unavailable"/"unknown") — render it exactly like a missing entity,
+    // never as NaN, and without a threshold colour.
+    const n = st ? parseFloat(st.state) : NaN;
+    const have = isFinite(n);
+    const val = have ? n.toLocaleString() : "—";
+    return "<div class=\"okl-metric" + (have ? "" : " okl-unavailable") + "\"><div class=\"okl-value " + (have ? cls : "") + "\">" + val + "<span style=\"font-size:0.6em\"> " + unit + "</span></div><div class=\"okl-label\">" + label + "</div></div>";
   }
 
   _waterCls(st) {
