@@ -789,19 +789,22 @@ class OklynCard extends HTMLElement {
     if (c.show_pump_runtime && c.pump_entity) this._fetchPumpRuntime();
 
     const tiles = {
-      ph: hasAnalysis ? this._metricHtml(offset !== 0 ? t.phCorr : "pH", phDisplay, "", phCls) : "",
-      orp: hasAnalysis ? this._metricHtml(t.redox, orp, "mV", orpCls) : "",
+      ph: hasAnalysis && c.ph_entity ? this._metricHtml(offset !== 0 ? t.phCorr : "pH", phDisplay, "", phCls) : "",
+      orp: hasAnalysis && c.orp_entity ? this._metricHtml(t.redox, orp, "mV", orpCls) : "",
       salt: hasSalt && c.salt_entity ? this._metricHtml(t.salt, salt, "g/L", saltCls) : "",
-      water: this._metricHtml(t.water, water, "°C", this._waterCls(water)),
-      air: this._metricHtml(t.air, air, "°C", ""),
+      water: c.water_entity ? this._metricHtml(t.water, water, "°C", this._waterCls(water)) : "",
+      air: c.air_entity ? this._metricHtml(t.air, air, "°C", "") : "",
       runtime: c.show_pump_runtime && c.pump_entity ? this._runtimeHtml() : "",
     };
     const order = Array.isArray(c.metrics_order) && c.metrics_order.length ? c.metrics_order : OKL_METRICS;
-    const keys = order.filter((k) => k in tiles).concat(OKL_METRICS.filter((k) => !order.includes(k)));
+    // metrics_order is authoritative: a metric the user deselected in the editor
+    // must stay out. (It used to be re-appended here, so removal did nothing.)
+    const keys = order.filter((k) => k in tiles);
     this.querySelector("#okl-metrics").innerHTML = keys.map((k) => tiles[k]).join("");
 
     const pump = this._state(c.pump_entity);
     const pumpSection = this.querySelector("#okl-pump-section");
+    pumpSection.hidden = !c.pump_entity;
     pumpSection.classList.toggle("okl-unavailable", !pump);
     if (pump) {
       const pumpRunning = c.pump_running_entity ? this._state(c.pump_running_entity) : null;

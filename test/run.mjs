@@ -173,4 +173,54 @@ const st = (v, attrs = {}) => ({ state: String(v), attributes: attrs, last_updat
   globalThis.document.createElement = realCreate;
 }
 
+// ── Tiles are gated on their entity ──────────────────────────────────────────
+// Clearing an entity in the editor must remove its tile, not leave a greyed
+// placeholder. Only `salt` was gated; pH/RedOx keyed off the model alone and
+// water/air were rendered unconditionally.
+
+{
+  const nTiles = (slots) => (slots.get('#okl-metrics')?.innerHTML ?? '').split('okl-metric').length - 1;
+
+  const noPh = renderCard({ ...BASE, ph_entity: '' }, { 'sensor.orp': st(650) });
+  check('ph_entity vide → aucune tuile pH', tile(noPh, 'pH').value, '(tuile absente)');
+
+  const noWater = renderCard({ ...BASE, water_entity: '' }, { 'sensor.ph': st(7.2) });
+  check('water_entity vide → aucune tuile Eau', tile(noWater, 'Water').value, '(tuile absente)');
+
+  const noAir = renderCard({ ...BASE, air_entity: '' }, { 'sensor.ph': st(7.2) });
+  check('air_entity vide → aucune tuile Air', tile(noAir, 'Air').value, '(tuile absente)');
+
+  const only = renderCard({ model: 'analysis', ph_entity: 'sensor.ph' }, { 'sensor.ph': st(7.2) });
+  check('une seule entité configurée → une seule tuile', nTiles(only), 1);
+}
+
+// ── metrics_order is authoritative ───────────────────────────────────────────
+// Deselecting a metric in the editor removed it from metrics_order, but the
+// render appended back every metric missing from the list, so nothing changed.
+
+{
+  const noPh = renderCard({ ...BASE, metrics_order: ['orp', 'water', 'air'] },
+                          { 'sensor.ph': st(7.2), 'sensor.orp': st(650), 'sensor.water': st(28) });
+  check('ph retiré de metrics_order → tuile absente', tile(noPh, 'pH').value, '(tuile absente)');
+  check('ph retiré : RedOx toujours là', tile(noPh, 'RedOx').value.trim(), fmt(650));
+
+  const order = renderCard({ ...BASE, metrics_order: ['air', 'ph'] },
+                           { 'sensor.ph': st(7.2), 'sensor.air': st(21) });
+  const html = order.get('#okl-metrics').innerHTML;
+  check('ordre respecté : Air avant pH', html.indexOf('>Air<') < html.indexOf('>pH<'), true);
+}
+
+// ── Pump section ─────────────────────────────────────────────────────────────
+// Without a pump entity the row was only greyed, leaving dead AUTO/ON/OFF
+// buttons on screen — the aux rows already hide themselves properly.
+
+{
+  const noPump = renderCard({ ...BASE }, { 'sensor.ph': st(7.2) });
+  check('pump_entity vide → section pompe masquée', noPump.get('#okl-pump-section').hidden, true);
+
+  const withPump = renderCard({ ...BASE, pump_entity: 'select.pump' },
+    { 'sensor.ph': st(7.2), 'select.pump': st('auto', { status: 'on' }) });
+  check('pump_entity présente → section pompe visible', withPump.get('#okl-pump-section').hidden, false);
+}
+
 report();
