@@ -4,6 +4,8 @@
 
 # Oklyn Card
 
+<a href="https://github.com/ADNPolymerase/oklyn-card/blob/main/README.md"><img src="https://raw.githubusercontent.com/ADNPolymerase/oklyn-card/main/docs/lang-en.svg" alt="Read in English" height="60"></a>
+
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-blue.svg)](https://github.com/hacs/default)
 [![GitHub Release](https://badgen.net/github/release/ADNPolymerase/oklyn-card)](https://github.com/ADNPolymerase/oklyn-card/releases)
 [![HACS Action](https://github.com/ADNPolymerase/oklyn-card/actions/workflows/hacs.yml/badge.svg)](https://github.com/ADNPolymerase/oklyn-card/actions/workflows/hacs.yml)
@@ -16,8 +18,6 @@
 
 Carte Lovelace pour l'[intégration Oklyn](https://github.com/ADNPolymerase/ha-oklyn).
 Multilingue (11 langues : FR, EN, DE, ES, IT, NL, SV, NO, DA, PL, RU) — suit automatiquement la langue de Home Assistant, anglais par défaut. Option `language` ou choix dans l'éditeur pour forcer.
-
-> 🇬🇧 [Read in English](README.md)
 
 ![Capture Oklyn Card](https://raw.githubusercontent.com/ADNPolymerase/oklyn-card/main/docs/card.fr.png)
 

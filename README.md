@@ -4,6 +4,8 @@
 
 # Oklyn Card
 
+<a href="https://github.com/ADNPolymerase/oklyn-card/blob/main/README.fr.md"><img src="https://raw.githubusercontent.com/ADNPolymerase/oklyn-card/main/docs/lang-fr.svg" alt="Lire en français" height="60"></a>
+
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-blue.svg)](https://github.com/hacs/default)
 [![GitHub Release](https://badgen.net/github/release/ADNPolymerase/oklyn-card)](https://github.com/ADNPolymerase/oklyn-card/releases)
 [![HACS Action](https://github.com/ADNPolymerase/oklyn-card/actions/workflows/hacs.yml/badge.svg)](https://github.com/ADNPolymerase/oklyn-card/actions/workflows/hacs.yml)
@@ -16,8 +18,6 @@
 
 Custom Lovelace card for the [Oklyn pool controller integration](https://github.com/ADNPolymerase/ha-oklyn).
 Multilingual (11 languages: EN, FR, DE, ES, IT, NL, SV, NO, DA, PL, RU) — follows your Home Assistant language automatically, English by default.
-
-> 🇫🇷 [Lire en français](README.fr.md)
 
 ![Oklyn Card screenshot](https://raw.githubusercontent.com/ADNPolymerase/oklyn-card/main/docs/card.png)
 
